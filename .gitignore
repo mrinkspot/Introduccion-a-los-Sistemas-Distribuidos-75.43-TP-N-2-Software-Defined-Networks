@@ -13,19 +13,19 @@ __pycache__/
 *.mn
 *.mnlog
 
+# Instalación de POX - backups temporales
+.tmp_backup/
+.tmp_firewall_backup/
+
 # Wireshark captures
 *.pcap
 *.pcapng
 captures/
 
-# POX Controller (dependencia externa, se instala por separado)
+# POX Controller (dependencia externa - se instala por separado)
 # Ver README.md para instrucciones de instalación
-pox/*                           # Ignorar todo el directorio POX
-!pox/ext/                       # EXCEPTO el directorio ext/
-pox/ext/*                       # Ignorar contenido de ext/
-!pox/ext/firewall.py           # INCLUIR nuestro firewall
-!pox/ext/utils.py              # INCLUIR nuestras utilidades
-!pox/ext/firewall_rules.json  # INCLUIR nuestras reglas
+# pox/ tiene su propio .gitignore que maneja qué incluir
+# Solo incluimos pox/.gitignore y pox/ext/ con nuestros módulos custom
 
 # POX y otros logs
 *.log

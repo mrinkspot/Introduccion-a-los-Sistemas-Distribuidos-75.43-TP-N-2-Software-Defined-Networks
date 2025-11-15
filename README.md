@@ -56,14 +56,39 @@ sudo apt-get install wireshark
 
 ### Instalación de POX
 
-**Importante**: POX no está incluido en este repositorio (es una dependencia externa).
+**Importante**: POX no está incluido completamente en este repositorio (es una dependencia externa). Solo los módulos custom del firewall están versionados en `pox/ext/`.
+
+#### Instalación Automática
 
 ```bash
-# Desde el directorio del proyecto, clonar POX
-git clone https://github.com/noxrepo/pox.git
+# Desde el directorio del proyecto
+./install_pox.sh
 ```
 
-**Nota**: Los módulos custom del firewall (`firewall.py`, `utils.py`, `firewall_rules.json`) ya están versionados en `pox/ext/` de este repositorio y estarán disponibles automáticamente después de clonar POX.
+Este script:
+- Clona POX desde GitHub
+- Preserva automáticamente los módulos custom del firewall
+- Configura todo correctamente
+
+#### Instalación Manual
+
+Si preferís instalar manualmente:
+
+```bash
+# 1. Hace un backup de los módulos custom
+mkdir -p .tmp_backup
+cp -r pox/ext/* .tmp_backup/
+cp pox/.gitignore .tmp_backup/
+
+# 2. Elimina el directorio parcial y clona POX completo
+rm -rf pox/
+git clone https://github.com/noxrepo/pox.git
+
+# 3. Restaura los módulos custom
+cp .tmp_backup/* pox/ext/
+cp .tmp_backup/.gitignore pox/
+rm -rf pox/.git .tmp_backup/
+```
 
 ---
 
