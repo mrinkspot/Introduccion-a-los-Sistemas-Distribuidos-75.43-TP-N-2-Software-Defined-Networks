@@ -22,17 +22,6 @@ Todas las pruebas se realizaron siguiendo el siguiente procedimiento:
 
 \textbf{Importante}: El controlador debe iniciarse \textit{antes} que la topología para que los switches puedan conectarse al momento de su creación.
 
-\subsection{Herramientas Utilizadas}
-
-\begin{itemize}
-    \item \textbf{Mininet}: Emulación de la topología de red
-    \item \textbf{POX}: Controlador SDN con L2 learning y firewall
-    \item \textbf{iperf}: Generación y medición de tráfico TCP/UDP
-    \item \textbf{Wireshark}: Captura y análisis de paquetes (opcional)
-    \item \textbf{ping}: Verificación de conectividad ICMP
-    \item \textbf{curl/http.server}: Pruebas de tráfico HTTP
-\end{itemize}
-
 \subsection{Verificación Básica: Conectividad}
 
 \subsubsection{Prueba 1: PingAll}
@@ -46,12 +35,12 @@ mininet> pingall
 
 \textbf{Resultado Esperado}:
 \begin{itemize}
-    \item $h_1 \leftrightarrow h_2$: ✓ Conectividad exitosa
-    \item $h_1 \leftrightarrow h_3$: ✓ Conectividad exitosa
-    \item $h_1 \leftrightarrow h_4$: ✓ Conectividad exitosa
-    \item $h_2 \leftrightarrow h_3$: ✗ Bloqueado (Regla 3)
-    \item $h_2 \leftrightarrow h_4$: ✓ Conectividad exitosa
-    \item $h_3 \leftrightarrow h_4$: ✓ Conectividad exitosa
+    \item $h_1 \leftrightarrow h_2$: Conectividad exitosa
+    \item $h_1 \leftrightarrow h_3$: Conectividad exitosa
+    \item $h_1 \leftrightarrow h_4$: Conectividad exitosa
+    \item $h_2 \leftrightarrow h_3$: Bloqueado (Regla 3)
+    \item $h_2 \leftrightarrow h_4$: Conectividad exitosa
+    \item $h_3 \leftrightarrow h_4$: Conectividad exitosa
 \end{itemize}
 
 \textbf{Logs del Controlador}:
@@ -216,53 +205,3 @@ mininet> h3 ping -c 4 h4    # Debería funcionar
     \caption{Mensaje FlowMod instalando regla de firewall}
     \label{fig:wireshark_flowmod}
 \end{figure}
-
-\subsection{Logs del Controlador}
-
-Los logs del controlador proporcionan información detallada sobre las operaciones realizadas:
-
-\subsubsection{Inicialización del Firewall}
-\begin{verbatim}
-======================================================================
-Firewall SDN inicializado
-Reglas cargadas: 5
-======================================================================
-\end{verbatim}
-
-\subsubsection{Conexión de Switches}
-\begin{verbatim}
-======================================================================
-Switch 00-00-00-00-00-01 conectado
-----------------------------------------------------------------------
-  [1/5] Bloquear todo el tráfico al puerto 80
-  [2/5] Bloquear todo el tráfico al puerto 80
-  [3/5] Bloquear UDP desde host 1 con puerto destino 5001
-  [4/5] Bloquear comunicación de host 2 a host 3
-  [5/5] Bloquear comunicación de host 3 a host 2
-----------------------------------------------------------------------
-Firewall configurado en 00-00-00-00-00-01: 5 reglas instaladas
-======================================================================
-\end{verbatim}
-
-\subsection{Resumen de Resultados}
-
-\begin{table}[H]
-\centering
-\begin{tabular}{@{}lll@{}}
-\toprule
-\textbf{Prueba} & \textbf{Esperado} & \textbf{Obtenido} \\ \midrule
-Conectividad h1-h4 & ✓ Permitido & ✓ Correcto \\
-Conectividad h2-h3 & ✗ Bloqueado & ✓ Correcto \\
-Puerto 80 (TCP) & ✗ Bloqueado & ✓ Correcto \\
-Puerto 80 (UDP) & ✗ Bloqueado & ✓ Correcto \\
-h1→5001/UDP & ✗ Bloqueado & ✓ Correcto \\
-h2→5001/UDP & ✓ Permitido & ✓ Correcto \\
-L2 Learning & ✓ Funcional & ✓ Correcto \\
-Topología N=1 & ✓ Funcional & ✓ Correcto \\
-Topología N=3 & ✓ Funcional & ✓ Correcto \\ \bottomrule
-\end{tabular}
-\caption{Resumen de resultados de pruebas}
-\label{tab:test_results}
-\end{table}
-
-\textbf{Conclusión de Pruebas}: Todas las funcionalidades implementadas operan según lo especificado en el enunciado. El sistema de validación previene errores de configuración y el firewall mantiene las reglas correctamente en diferentes topologías.

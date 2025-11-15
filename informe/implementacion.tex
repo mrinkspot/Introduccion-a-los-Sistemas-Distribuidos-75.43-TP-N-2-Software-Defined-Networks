@@ -53,16 +53,7 @@ Cuando $N=1$, todos los hosts se conectan al único switch disponible, formando 
 
 \subsubsection{Implementación Técnica}
 
-La topología se implementó en Python usando la API de Mininet, definiendo una clase \texttt{ChainTopology} que hereda de \texttt{Topo}:
-
-\begin{verbatim}
-class ChainTopology(Topo):
-    def __init__(self, n=2):
-        Topo.__init__(self)
-        # Crea switches en cadena
-        # Conecta hosts a los extremos
-        # Enlaza switches linealmente
-\end{verbatim}
+La topología se implementó en Python usando la API de Mininet, definiendo una clase \texttt{ChainTopology} que hereda de \texttt{Topo}.
 
 La clase maneja dinámicamente la creación de switches y sus enlaces.
 
@@ -214,17 +205,17 @@ El código fuente se organizó de la siguiente manera:
 
 \begin{verbatim}
 proyecto/
-├── controller/              # Módulos SDN custom
-│   ├── __init__.py
-│   ├── firewall.py         # Implementación del firewall
-│   ├── utils.py            # Validación de reglas
-│   └── firewall_rules.json # Reglas del firewall
-├── pox/                    # POX (instalado externamente)
-├── topology.py             # Topología Mininet
-├── run_controller.sh       # Script para ejecutar POX
-├── run_topology.sh         # Script para ejecutar Mininet
-├── install_pox.sh          # Script de instalación
-└── README.md               # Documentación
+|-- controller/              # Módulos SDN custom
+|   |-- __init__.py
+|   |-- firewall.py         # Implementación del firewall
+|   |-- utils.py            # Validación de reglas
+|   `-- firewall_rules.json # Reglas del firewall
+|-- pox/                    # POX (instalado externamente)
+|-- topology.py             # Topología Mininet
+|-- run_controller.sh       # Script para ejecutar POX
+|-- run_topology.sh         # Script para ejecutar Mininet
+|-- install_pox.sh          # Script de instalación
+`-- README.md               # Documentación
 \end{verbatim}
 
 \subsection{Decisiones de Diseño}
