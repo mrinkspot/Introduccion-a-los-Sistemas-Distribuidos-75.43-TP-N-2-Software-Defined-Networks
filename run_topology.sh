@@ -65,7 +65,7 @@ fi
 
 # warning sobre el controlador
 echo -e "${YELLOW}⚠ IMPORTANTE:${NC}"
-echo "  AsegUrate de tener el controlador POX ejecutándose antes de iniciar Mininet"
+echo "  Asegurate de tener el controlador POX ejecutándose antes de iniciar Mininet"
 echo "  Ejecuta en otra terminal: ./run_controller.sh"
 echo ""
 echo -e "Presiona ${GREEN}Enter${NC} para continuar o ${RED}Ctrl+C${NC} para cancelar..."
