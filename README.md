@@ -227,6 +227,27 @@ mininet> h1 ip addr show
 
 ---
 
+## Comandos para testear 
+
+en una conso levantar la topologia con n switches
+
+en otra el controlador open flow (recordar colocar el archivo firewall y sus dependencias en la carpeta "ext" del repositorio de pox):
+```bash
+   python3.9 ./pox.py forwarding.l2_learning firewall
+```
+
+```bash
+mininet> h1 ping -c 4 h4 #deberia andar
+mininet> h2 ping -c 4 h3 #no deberia andar
+mininet> h2 ping -c 4 h3 #tampoco
+
+mininet> h2 iperf -s -u -p 5001 &  # levantamos servidor
+mininet> h1 iperf -c -u -p 5001  # tratamos de mandar - no deberia llegar nada a h2 
+mininet> h4 iperf -c -u -p 5001  # deberia funcionar
+
+#probar condicion del puerto 80
+```
+
 ## Integrantes
 - Camila Bartocci
 - Franco Patiño
@@ -244,3 +265,5 @@ Facultad de Ingeniería, Universidad de Buenos Aires
 - [Mininet Documentation](http://mininet.org/)
 - [POX Controller](https://noxrepo.github.io/pox-doc/html/)
 - [OpenFlow Specification](https://www.opennetworking.org/)
+
+
