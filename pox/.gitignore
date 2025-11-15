@@ -1,0 +1,8 @@
+# Ignorar TODO el código de POX (es dependencia externa)
+# Solo incluimos nuestros módulos custom en ext/
+*
+!.gitignore
+!ext/
+!ext/firewall.py
+!ext/utils.py
+!ext/firewall_rules.json
