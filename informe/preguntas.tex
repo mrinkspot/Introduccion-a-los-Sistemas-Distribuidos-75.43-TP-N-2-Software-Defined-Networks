@@ -1,1 +1,36 @@
 \section{Preguntas a responder}
+
+\subsection{¿Cuál es la diferencia entre un switch y un router? ¿Qué tienen en común?}
+
+Los switches y los routers son dispositivos esenciales para que una red funcione.
+Ambos reciben paquetes, toman decisiones de reenvío y permiten que distintos equipos se comuniquen.
+\\
+
+Sin embargo, presentan diferencias claras:
+
+\begin{enumerate}
+    \item \textbf{Capa en la que operan:}
+    Un switch trabaja en la capa de enlace de datos, utiliza direcciones MAC y una tabla de conmutación para decidir por qué puerto enviar cada frame.
+    Un router opera en la capa de red, utiliza direcciones IP y una tabla de enrutamiento para determinar la mejor ruta hacia otras redes.
+
+    \item \textbf{Tipo de comunicación que habilitan:}
+    El switch conecta dispositivos dentro de la misma red local (LAN).
+    El router conecta diferentes redes entre sí (LAN–LAN, LAN–Internet), permitiendo alcanzar destinos externos.
+
+    \item \textbf{Reenvío de datos:}
+    El switch aprende qué dirección MAC está asociada a cada puerto y envía el frame únicamente al puerto correspondiente.
+    El router requiere configuración IP y emplea algoritmos de enrutamiento para decidir la ruta óptima. Al procesar información de la capa de red, el reenvío suele ser más costoso computacionalmente.
+
+    \item \textbf{Funciones de seguridad y control:}
+    El switch ofrece controles básicos a nivel de puerto.
+    El router puede aplicar reglas más avanzadas (como NAT o firewall), gracias a que analiza información de las capas de red y transporte.
+\end{enumerate}
+
+En cuanto a sus similitudes:
+
+\begin{enumerate}
+    \item Ambos son dispositivos de conmutación de paquetes (store-and-forward).
+    \item Ambos toman decisiones de reenvío utilizando una tabla interna (MAC table / routing table).
+    \item Forman parte crítica de la infraestructura de red.
+    \item En un entorno SDN, ambos pueden administrarse desde un controlador central que define cómo deben manejar el tráfico.
+\end{enumerate}
