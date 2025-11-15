@@ -263,7 +263,12 @@ mininet> h1 ip addr show
 
 4. **Módulos custom**: Los módulos del firewall están en `controller/`, separados del código de POX.
 
-5. **Reglas del firewall**: Edita `controller/firewall_rules.json` para modificar las reglas de bloqueo.
+5. **Reglas del firewall**: Edita `controller/firewall_rules.json` para modificar las reglas de bloqueo. Las reglas se validan al cargar:
+   - Verificación de formato de IPs (IPv4)
+   - Validación de protocolos (TCP, UDP, ICMP)
+   - Verificación de rangos de puertos (1-65535)
+   - Prevención de errores comunes (por ej: ICMP con puertos)
+   - Las reglas inválidas se ignoran con mensaje de warning
 
 6. **Errores de POX**: Si ves errores de `ipv4.ipv4` en los logs, son un bug conocido de POX con Python 3.12. No afectan la funcionalidad. Ver `KNOWN_ISSUES.md`.
 

@@ -2,17 +2,12 @@
   "rules": [
     {
       "description": "Bloquear todo el tráfico al puerto 80",
-      "protocol": "UDP",
-      "dst_port": 80
-    },
-    {
-      "description": "Bloquear todo el tráfico al puerto 80",
       "protocol": "TCP",
       "dst_port": 80
     },
     {
       "description": "Bloquear todo el tráfico al puerto 80",
-      "protocol": "ICMP",
+      "protocol": "UDP",
       "dst_port": 80
     },
     {
