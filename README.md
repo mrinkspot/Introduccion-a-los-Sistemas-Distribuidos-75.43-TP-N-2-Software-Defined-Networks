@@ -56,39 +56,14 @@ sudo apt-get install wireshark
 
 ### Instalación de POX
 
-**Importante**: POX no está incluido completamente en este repositorio (es una dependencia externa). Solo los módulos custom del firewall están versionados en `pox/ext/`.
-
-#### Instalación Automática
+**Importante**: POX no está incluido en este repositorio (es una dependencia externa). Los módulos custom del firewall están en `controller/`, no en `pox/`.
 
 ```bash
 # Desde el directorio del proyecto
 ./install_pox.sh
 ```
 
-Este script:
-- Clona POX desde GitHub
-- Preserva automáticamente los módulos custom del firewall
-- Configura todo correctamente
-
-#### Instalación Manual
-
-Si preferís instalar manualmente:
-
-```bash
-# 1. Hace un backup de los módulos custom
-mkdir -p .tmp_backup
-cp -r pox/ext/* .tmp_backup/
-cp pox/.gitignore .tmp_backup/
-
-# 2. Elimina el directorio parcial y clona POX completo
-rm -rf pox/
-git clone https://github.com/noxrepo/pox.git
-
-# 3. Restaura los módulos custom
-cp .tmp_backup/* pox/ext/
-cp .tmp_backup/.gitignore pox/
-rm -rf pox/.git .tmp_backup/
-```
+Este script clona POX desde GitHub y lo configura correctamente
 
 ---
 
@@ -129,7 +104,32 @@ Caso N = 1:
 
 ## Uso
 
-### 1. Ejecutar la Topología
+⚠️ **ORDEN IMPORTANTE: Controlador PRIMERO, Topología DESPUÉS**
+
+### 1. Ejecutar el Controlador POX (PRIMERO)
+
+**Terminal 1** - Iniciar el controlador con firewall y L2 learning:
+
+```bash
+chmod +x run_controller.sh
+./run_controller.sh
+```
+
+El controlador quedará escuchando en el puerto 6633 y cargará:
+- `forwarding.l2_learning`: Aprendizaje de direcciones MAC
+- `firewall`: Reglas de bloqueo (desde `controller/firewall_rules.json`)
+
+**Esperar a ver:**
+```
+======================================================================
+Firewall SDN inicializado
+Reglas cargadas: 4
+======================================================================
+```
+
+### 2. Ejecutar la Topología (DESPUÉS)
+
+**Terminal 2** - SOLO después de que el controlador esté corriendo:
 
 ```bash
 # Permisos de ejecución al script
@@ -145,7 +145,7 @@ chmod +x run_topology.sh
 ./run_topology.sh 1
 ```
 
-### 2. Comandos Útiles en Mininet
+### 3. Comandos Útiles en Mininet
 
 Una vez dentro del CLI de Mininet:
 
@@ -175,7 +175,7 @@ mininet> xterm h1
 mininet> exit
 ```
 
-### 3. Pruebas Manuales
+### 4. Pruebas Manuales
 
 Se puede ejecutar la topología manualmente sin el script:
 
@@ -192,16 +192,35 @@ sudo mn --custom topology.py --topo chain,N=2 --mac --arp --switch ovsk --contro
 ## Estructura del Proyecto
 
 ```
-.
-├── topology.py              # Topología parametrizable de Mininet
-├── run_topology.sh          # Script para iniciar la topología
-└── README.md                # Este archivo
+proyecto/
+├── controller/              # Módulos SDN custom
+│   ├── __init__.py
+│   ├── firewall.py         # Implementación del firewall
+│   ├── utils.py            # Utilidades (carga de reglas)
+│   └── firewall_rules.json # Reglas del firewall
+├── pox/                     # POX (no versionado, se instala con script)
+├── topology.py              # Topología Mininet parametrizable
+├── run_controller.sh        # Script para ejecutar POX
+├── run_topology.sh          # Script para ejecutar Mininet
+├── install_pox.sh           # Script de instalación de POX
+└── README.md
+
 ```
 
 ### Descripción de Archivos
 
+**Topología:**
 - **`topology.py`**: Implementa la clase `ChainTopology` que crea la topología parametrizable
 - **`run_topology.sh`**: Script bash para facilitar la ejecución de Mininet
+
+**Controlador:**
+- **`controller/firewall.py`**: Módulo POX que implementa el firewall SDN
+- **`controller/utils.py`**: Funciones auxiliares para cargar reglas
+- **`controller/firewall_rules.json`**: Reglas del firewall en formato JSON
+- **`run_controller.sh`**: Script para ejecutar POX con los módulos custom
+
+**Instalación:**
+- **`install_pox.sh`**: Script para clonar e instalar POX
 
 ---
 
@@ -236,49 +255,70 @@ mininet> h1 ip addr show
 
 ## Notas Importantes
 
-1. Esta topología todavía requiere un controlador SDN externo. Sin controlador, los switches no van a aprender y no va a haber conectividad.
+1. **Controlador requerido**: La topología requiere el controlador POX ejecutándose. Sin controlador, los switches no aprenden rutas y no hay conectividad.
 
-2. Mininet requiere permisos de superusuario (`sudo`) para crear interfaces de red virtuales.
+2. **Permisos**: Mininet requiere `sudo` para crear interfaces de red virtuales.
 
-3. El script `run_topology.sh` limpia automáticamente las configuraciones previas de Mininet.
+3. **Limpieza automática**: El script `run_topology.sh` limpia automáticamente configuraciones previas de Mininet.
 
-4. Por ahora solo tenemos la topología. Las siguientes fases incluirán:
-   - Controlador POX con L2 learning
-   - Firewall con reglas configurables
-   - Scripts de prueba automatizados
+4. **Módulos custom**: Los módulos del firewall están en `controller/`, separados del código de POX.
 
----
+5. **Reglas del firewall**: Edita `controller/firewall_rules.json` para modificar las reglas de bloqueo.
 
-## TODO
-
-- [ ] Implementar controlador POX con L2 learning
-- [ ] Agregar funcionalidad de firewall
-- [ ] Crear archivo de reglas JSON
-- [ ] Implementar scripts de prueba
-- [ ] Documentar con capturas de Wireshark
+6. **Errores de POX**: Si ves errores de `ipv4.ipv4` en los logs, son un bug conocido de POX con Python 3.12. No afectan la funcionalidad. Ver `KNOWN_ISSUES.md`.
 
 ---
 
-## Comandos para testear 
+## Pruebas del Firewall
 
-en una conso levantar la topologia con n switches
+### Configuración
 
-en otra el controlador open flow (recordar colocar el archivo firewall y sus dependencias en la carpeta "ext" del repositorio de pox):
+Las reglas activas están definidas en `controller/firewall_rules.json`:
+
+1. **Regla 1**: Bloquear puerto 80 (HTTP) - cualquier protocolo
+2. **Regla 2**: Bloquear UDP desde h1 (10.0.0.1) al puerto 5001
+3. **Regla 3**: Bloquear comunicación bidireccional entre h2 ↔ h3
+
+### Tests Sugeridos
+
+**Test 1: Conectividad general (h2 ↔ h3 bloqueada)**
 ```bash
-   python3.9 ./pox.py forwarding.l2_learning firewall
+mininet> h1 ping -c 4 h4    # Debería funcionar
+mininet> h2 ping -c 4 h3    # Bloqueado (regla 3)
+mininet> h3 ping -c 4 h2    # Bloqueado (regla 3 reversa)
+mininet> h1 ping -c 4 h3    # Debería funcionar
 ```
 
+**Test 2: UDP puerto 5001 desde h1 bloqueado**
 ```bash
-mininet> h1 ping -c 4 h4 #deberia andar
-mininet> h2 ping -c 4 h3 #no deberia andar
-mininet> h2 ping -c 4 h3 #tampoco
+# Servidor UDP en h4
+mininet> h4 iperf -s -u -p 5001 &
 
-mininet> h2 iperf -s -u -p 5001 &  # levantamos servidor
-mininet> h1 iperf -c -u -p 5001  # tratamos de mandar - no deberia llegar nada a h2 
-mininet> h4 iperf -c -u -p 5001  # deberia funcionar
+# Cliente desde h1 - BLOQUEADO
+mininet> h1 iperf -c 10.0.0.4 -u -p 5001
+# No debería llegar tráfico (regla 2)
 
-#probar condicion del puerto 80
+# Cliente desde h2 - PERMITIDO
+mininet> h2 iperf -c 10.0.0.4 -u -p 5001
+# Debería funcionar (solo h1 está bloqueado)
 ```
+
+**Test 3: Puerto 80 bloqueado para todos**
+```bash
+# Servidor HTTP en h1
+mininet> h1 python3 -m http.server 80 &
+
+# Desde h4
+mininet> h4 curl -m 3 http://10.0.0.1:80
+# Timeout (puerto 80 bloqueado - regla 1)
+
+# Servidor en otro puerto
+mininet> h1 python3 -m http.server 8000 &
+mininet> h4 curl http://10.0.0.1:8000
+# Debería funcionar (solo puerto 80 está bloqueado)
+```
+
+---
 
 ## Integrantes
 - Camila Bartocci
