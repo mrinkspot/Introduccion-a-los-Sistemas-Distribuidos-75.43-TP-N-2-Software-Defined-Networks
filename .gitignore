@@ -18,8 +18,16 @@ __pycache__/
 *.pcapng
 captures/
 
-# POX logs
-pox/
+# POX Controller (dependencia externa, se instala por separado)
+# Ver README.md para instrucciones de instalación
+pox/*                           # Ignorar todo el directorio POX
+!pox/ext/                       # EXCEPTO el directorio ext/
+pox/ext/*                       # Ignorar contenido de ext/
+!pox/ext/firewall.py           # INCLUIR nuestro firewall
+!pox/ext/utils.py              # INCLUIR nuestras utilidades
+!pox/ext/firewall_rules.json  # INCLUIR nuestras reglas
+
+# POX y otros logs
 *.log
 logs/
 

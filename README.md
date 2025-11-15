@@ -47,16 +47,23 @@ sudo apt-get update
 # Mininet
 sudo apt-get install mininet
 
-# Instalación de POX
-git clone https://github.com/noxrepo/pox.git
-cd pox
-
-# Instalación de iperf
+# Instalacion de iperf
 sudo apt-get install iperf
 
 # Instalación de Wireshark (opcional)
 sudo apt-get install wireshark
 ```
+
+### Instalación de POX
+
+**Importante**: POX no está incluido en este repositorio (es una dependencia externa).
+
+```bash
+# Desde el directorio del proyecto, clonar POX
+git clone https://github.com/noxrepo/pox.git
+```
+
+**Nota**: Los módulos custom del firewall (`firewall.py`, `utils.py`, `firewall_rules.json`) ya están versionados en `pox/ext/` de este repositorio y estarán disponibles automáticamente después de clonar POX.
 
 ---
 
