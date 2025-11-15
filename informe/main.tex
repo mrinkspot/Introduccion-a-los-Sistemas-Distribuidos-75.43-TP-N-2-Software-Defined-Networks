@@ -1,0 +1,37 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{float}
+
+\usepackage{fancyhdr}   % Paquete para encabezados y pies de página
+\pagestyle{fancy}       % Activa estilo fancy
+
+% Limpia encabezados/pies previos
+\fancyhf{}              
+
+% Encabezado
+\fancyhead[L]{TP2 - Software-Defined Networks}  % L = izquierda
+\fancyhead[R]{Intro. Sistemas Distribuidos} % R = derecha
+
+% Pie de página
+\fancyfoot[C]{\thepage}  % número de página en el centro abajo
+
+\begin{document}
+
+\input{caratula.tex}
+
+\tableofcontents
+\newpage
+
+\input{introduccion.tex}
+\input{herramientas_utilizadas.tex}
+\input{preguntas.tex}
+\input{conclusion.tex}
+
+\end{document}
+

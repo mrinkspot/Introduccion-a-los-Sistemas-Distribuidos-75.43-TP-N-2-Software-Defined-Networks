@@ -20,6 +20,7 @@ captures/
 
 # POX Controller (dependencia externa, se instala por separado)
 # Ver README.md para instrucciones de instalación
+pox
 pox/*                           # Ignorar todo el directorio POX
 !pox/ext/                       # EXCEPTO el directorio ext/
 pox/ext/*                       # Ignorar contenido de ext/
@@ -243,3 +244,19 @@ marimo/_lsp/
 __marimo__/
 
 enunciado.txt
+
+# LaTeX
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.nav
+*.snm
+*.vrb
+*.bcf
+*.run.xml
