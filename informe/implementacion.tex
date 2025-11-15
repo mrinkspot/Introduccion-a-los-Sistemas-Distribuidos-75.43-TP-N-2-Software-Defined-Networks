@@ -1,2 +1,275 @@
 \section{Implementación}
-% aca podemos explicar como es la topologia con un grafico y los deatlles de implementacion 
+
+La implementación del proyecto se dividió en tres componentes principales: la topología de red, el controlador SDN y las reglas del firewall. A continuación se detallan los aspectos técnicos de cada uno.
+
+\subsection{Arquitectura General}
+
+El sistema implementado sigue el paradigma de Software-Defined Networking (SDN), separando el plano de control del plano de datos. La arquitectura consta de:
+
+\begin{itemize}
+    \item \textbf{Plano de Datos}: Switches OpenFlow emulados en Mininet, responsables del forwarding de paquetes según las reglas instaladas.
+    \item \textbf{Plano de Control}: Controlador POX que implementa la lógica de L2 learning y firewall.
+    \item \textbf{Canal de Comunicación}: Protocolo OpenFlow sobre TCP (puerto 6633).
+\end{itemize}
+
+\subsection{Conexión Switch-Controlador}
+
+La comunicación entre los switches y el controlador se establece mediante el protocolo OpenFlow:
+
+\begin{enumerate}
+    \item El controlador POX inicia un servidor TCP en el puerto 6633 (puerto estándar de OpenFlow).
+    \item Al crear la topología, Mininet configura cada switch con la dirección del controlador (\texttt{127.0.0.1:6633}).
+    \item Cada switch establece automáticamente una conexión TCP al controlador.
+    \item Una vez conectado, el controlador recibe un evento \texttt{ConnectionUp}, momento en el cual los módulos registrados (L2 learning y firewall) pueden instalar sus reglas en el switch.
+\end{enumerate}
+
+Este canal de control se mantiene activo durante toda la simulación.
+
+\subsection{Topología Parametrizable}
+
+\subsubsection{Diseño}
+
+Se implementó una topología de cadena (\textit{chain topology}) parametrizable, donde el número de switches ($N$) puede ser definido por el usuario. La topología cumple con las siguientes características:
+
+\begin{itemize}
+    \item \textbf{Switches}: $N$ switches conectados linealmente formando una cadena: $S_1 - S_2 - ... - S_N$
+    \item \textbf{Hosts}: 4 hosts totales distribuidos en los extremos
+    \begin{itemize}
+        \item $h_1$ y $h_2$ conectados al switch $S_1$ (primer extremo)
+        \item $h_3$ y $h_4$ conectados al switch $S_N$ (último extremo)
+    \end{itemize}
+    \item \textbf{Direcciones IP}: Asignación secuencial en la red 10.0.0.0/24
+    \begin{itemize}
+        \item $h_1$: 10.0.0.1
+        \item $h_2$: 10.0.0.2
+        \item $h_3$: 10.0.0.3
+        \item $h_4$: 10.0.0.4
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Caso Especial: $N=1$}
+
+Cuando $N=1$, todos los hosts se conectan al único switch disponible, formando una topología de estrella simple.
+
+\subsubsection{Implementación Técnica}
+
+La topología se implementó en Python usando la API de Mininet, definiendo una clase \texttt{ChainTopology} que hereda de \texttt{Topo}:
+
+\begin{verbatim}
+class ChainTopology(Topo):
+    def __init__(self, n=2):
+        Topo.__init__(self)
+        # Crea switches en cadena
+        # Conecta hosts a los extremos
+        # Enlaza switches linealmente
+\end{verbatim}
+
+La clase maneja dinámicamente la creación de switches y sus enlaces.
+
+% CHEQUEAR ESTO: segun lo que hablamos, el firewall se deberia instalar en un solo switch, no en todos los switches
+\subsubsection{Topologías de Ejemplo}
+
+A continuación se muestran diagramas de las topologías para diferentes valores de $N$:
+
+% Topología con N=1
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{topology_n1.png}
+    \caption{Topología con N=1 switches}
+    \label{fig:topology_n1}
+\end{figure}
+
+% Topología con N=2 (caso base del enunciado - Figura 5)
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{topology_n2.png}
+    \caption{Topología con N=2 switches}
+    \label{fig:topology_n2}
+\end{figure}
+
+% Topología con N=3
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{topology_n3.png}
+    \caption{Topología con N=3 switches}
+    \label{fig:topology_n3}
+\end{figure}
+
+\subsection{Controlador SDN}
+
+El controlador se implementó usando POX, un framework de controladores SDN en Python. La implementación consta de dos módulos principales:
+
+\subsubsection{L2 Learning}
+
+Se utiliza el módulo \texttt{forwarding.l2\_learning} de POX, que implementa el algoritmo de aprendizaje de direcciones MAC:
+
+\begin{enumerate}
+    \item Al recibir un \textit{PacketIn}, el switch no sabe cómo reenviar el paquete.
+    \item El controlador aprende la asociación MAC origen $\leftrightarrow$ puerto.
+    \item Si conoce la MAC destino, instala una regla de flujo.
+    \item Si no la conoce, realiza \textit{flooding} en todos los puertos (excepto el de entrada).
+\end{enumerate}
+
+Este mecanismo permite que los switches aprendan dinámicamente la topología sin configuración manual.
+
+\subsubsection{Firewall}
+
+El firewall se implementó como un módulo POX custom en \texttt{controller/firewall.py}. Sus características principales son:
+
+\textbf{Instalación Proactiva de Reglas:}
+\begin{itemize}
+    \item Las reglas se instalan al momento de la conexión del switch (evento \texttt{ConnectionUp}).
+    \item Se utiliza el mensaje \texttt{ofp\_flow\_mod} de OpenFlow para crear entradas en la tabla de flujos.
+    % % CHEQUEAR ESTO
+    % \item Las reglas tienen prioridad 100 (mayor que L2 learning, prioridad por defecto 50).
+    % \item Timeouts configurados en 0 (reglas permanentes).
+\end{itemize}
+
+\textbf{Estructura de Reglas:}
+
+Cada regla define un \texttt{ofp\_match} con los siguientes campos posibles:
+\begin{itemize}
+    \item \texttt{dl\_type}: Tipo de Ethernet (0x0800 para IPv4)
+    \item \texttt{nw\_src} / \texttt{nw\_dst}: Direcciones IP origen/destino
+    \item \texttt{nw\_proto}: Protocolo (TCP=6, UDP=17, ICMP=1)
+    \item \texttt{tp\_src} / \texttt{tp\_dst}: Puertos TCP/UDP origen/destino
+\end{itemize}
+
+Las reglas sin acciones asociadas resultan en \textit{DROP} implícito.
+
+\textbf{Validación de Reglas:}
+
+Se implementó un sistema robusto de validación en \texttt{controller/utils.py}:
+
+\begin{itemize}
+    \item Validación de formato de direcciones IPv4
+    \item Verificación de protocolos válidos (TCP, UDP, ICMP)
+    \item Validación de rangos de puertos (1-65535)
+    \item Verificación de prerequisitos de OpenFlow (ej: puerto requiere protocolo)
+    \item Detección de errores comunes (ej: ICMP no puede tener puertos TCP/UDP)
+    \item Logging detallado de reglas inválidas
+\end{itemize}
+
+Las reglas inválidas son ignoradas automáticamente, permitiendo que el sistema continúe funcionando.
+
+\subsection{Reglas del Firewall Implementadas}
+
+Las reglas se definen en el archivo \texttt{controller/firewall\_rules.json}. Se implementaron las siguientes reglas según el enunciado:
+
+\subsubsection{Regla 1: Bloqueo de Puerto 80}
+
+\textbf{Descripción}: Bloquear todos los mensajes cuyo puerto destino sea 80.
+
+\textbf{Implementación}: Se crearon dos reglas separadas, una para TCP y otra para UDP:
+
+\begin{verbatim}
+{
+  "description": "Bloquear todo el tráfico al puerto 80",
+  "protocol": "TCP",
+  "dst_port": 80
+}
+\end{verbatim}
+
+Esta regla previene el acceso HTTP en cualquier dirección.
+
+\subsubsection{Regla 2: Bloqueo Específico UDP}
+
+\textbf{Descripción}: Bloquear mensajes desde host 1 (10.0.0.1) con puerto destino 5001 y protocolo UDP.
+
+\begin{verbatim}
+{
+  "description": "Bloquear UDP desde host 1 con puerto destino 5001",
+  "src_ip": "10.0.0.1",
+  "protocol": "UDP",
+  "dst_port": 5001
+}
+\end{verbatim}
+
+Esta regla es más específica, bloqueando solo el tráfico UDP desde un host particular a un puerto específico.
+
+\subsubsection{Regla 3: Bloqueo Bidireccional}
+
+\textbf{Descripción}: Impedir comunicación en ambas direcciones entre host 2 (10.0.0.2) y host 3 (10.0.0.3).
+
+\textbf{Implementación}: Se requieren dos reglas para bloquear ambas direcciones:
+
+\begin{verbatim}
+{
+  "description": "Bloquear comunicación de host 2 a host 3",
+  "src_ip": "10.0.0.2",
+  "dst_ip": "10.0.0.3"
+},
+{
+  "description": "Bloquear comunicación de host 3 a host 2",
+  "src_ip": "10.0.0.3",
+  "dst_ip": "10.0.0.2"
+}
+\end{verbatim}
+
+Esto asegura el bloqueo total de comunicación entre ambos hosts, sin importar quién inicie la conexión.
+
+\subsection{Estructura del Proyecto}
+
+El código fuente se organizó de la siguiente manera:
+
+\begin{verbatim}
+proyecto/
+├── controller/              # Módulos SDN custom
+│   ├── __init__.py
+│   ├── firewall.py         # Implementación del firewall
+│   ├── utils.py            # Validación de reglas
+│   └── firewall_rules.json # Reglas del firewall
+├── pox/                    # POX (instalado externamente)
+├── topology.py             # Topología Mininet
+├── run_controller.sh       # Script para ejecutar POX
+├── run_topology.sh         # Script para ejecutar Mininet
+├── install_pox.sh          # Script de instalación
+└── README.md               # Documentación
+\end{verbatim}
+
+\subsection{Decisiones de Diseño}
+
+\subsubsection{Uso de L2 Learning Existente}
+
+Se decidió utilizar el módulo \texttt{forwarding.l2\_learning} de POX en lugar de implementar uno desde cero. Esta decisión se basó en:
+
+\begin{itemize}
+    \item Cumplimiento de requisitos (el enunciado permite usar módulos de POX)
+    \item Robustez y optimización del módulo oficial
+    \item Enfoque en la implementación del firewall (objetivo principal)
+    \item Reducción de complejidad y tiempo de desarrollo
+\end{itemize}
+
+% % CHEQUEAR ESTO
+% \subsubsection{Prioridad de Reglas}
+
+% Las reglas del firewall tienen prioridad 100, mientras que las reglas de L2 learning tienen prioridad por defecto (generalmente 50). Esto asegura que:
+
+% \begin{itemize}
+%     \item Las reglas de bloqueo se evalúan primero
+%     \item No se crean conflictos entre módulos
+%     \item El firewall mantiene control sobre el tráfico bloqueado
+% \end{itemize}
+
+\subsubsection{Validación Extensiva}
+
+Se implementó un sistema de validación completo para prevenir errores comunes:
+
+\begin{itemize}
+    \item Evita reglas que generen warnings de OpenFlow
+    \item Proporciona retroalimentación clara sobre errores
+    \item Permite que el sistema continúe funcionando con reglas válidas
+    \item Facilita el debugging y la depuración
+\end{itemize}
+
+\subsection{Scripts de Automatización}
+
+Se desarrollaron scripts bash para facilitar la ejecución:
+
+\begin{itemize}
+    \item \texttt{install\_pox.sh}: Clona e instala POX desde GitHub
+    \item \texttt{run\_controller.sh}: Ejecuta POX con los módulos necesarios
+    \item \texttt{run\_topology.sh}: Lanza Mininet con la topología parametrizable
+\end{itemize}
+
+Estos scripts incluyen validaciones y mensajes de error informativos.

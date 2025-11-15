@@ -22,6 +22,8 @@ __pycache__/
 *.pcapng
 captures/
 
+informe/.dot
+
 # POX Controller (dependencia externa - se instala por separado)
 # Ver README.md para instrucciones de instalación
 # pox/ tiene su propio .gitignore que maneja qué incluir
