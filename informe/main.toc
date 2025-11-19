@@ -1,0 +1,15 @@
+\babel@toc {spanish}{}\relax 
+\contentsline {section}{\numberline {1}Introducción}{2}{section.1}%
+\contentsline {section}{\numberline {2}Implementación}{3}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Decisiones de diseño}{3}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Topología de red}{3}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Controlador POX}{3}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Firewall}{3}{subsection.2.4}%
+\contentsline {section}{\numberline {3}Pruebas y Resultados}{4}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Pruebas de Conectividad}{4}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Pruebas de Rendimiento}{4}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Pruebas del Firewall}{4}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Análisis de Resultados}{4}{subsection.3.4}%
+\contentsline {section}{\numberline {4}Preguntas teóricas}{5}{section.4}%
+\contentsline {section}{\numberline {5}Dificultades encontradas}{6}{section.5}%
+\contentsline {section}{\numberline {6}Conclusión}{7}{section.6}%
