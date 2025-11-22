@@ -2,7 +2,7 @@
 Firewall SDN con OpenFlow
 
 Implementación de firewall a nivel de capa 2/3 usando OpenFlow.
-Carga reglas desde archivo JSON y las instala en los switches.
+Carga reglas desde archivo JSON y las instala en los switches especificados.
 
 Basado en: Coursera - Software Defined Networking (SDN) course
            Programming Assignment: Layer-2 Firewall Application
@@ -16,8 +16,8 @@ from pox.lib.util import dpidToStr
 from pox.lib.addresses import IPAddr
 from utils import load_firewall_rules
 
-log = core.getLogger()
-
+log = core.getLogger() 
+controlled_switches = [1] #Seleccionamos el s1 como unico switch a aplicar las reglas de firewall
 
 class Firewall(EventMixin):
     """
@@ -52,6 +52,9 @@ class Firewall(EventMixin):
         log.info("-" * 70)
 
         rules_installed = 0
+
+        if event.dpid not in controlled_switches:
+            return
         
         for idx, rule in enumerate(self.rules, 1):
             # Creacion del header del paquete a bloquear (los campos no definidos se consideran comodines)
@@ -91,11 +94,6 @@ class Firewall(EventMixin):
             # Creacion de flow mod (sin acciones = DROP)
             flow_mod = of.ofp_flow_mod()
             flow_mod.match = packet_header_to_block
-
-            # revisar si son necesarias estas tres cosas:
-            # flow_mod.priority = 100  # Alta prioridad (mayor que L2 learning)
-            # flow_mod.idle_timeout = 0  # Nunca expira por inactividad
-            # flow_mod.hard_timeout = 0  # Nunca expira por tiempo
             
             # Envio de regla al switch
             event.connection.send(flow_mod)

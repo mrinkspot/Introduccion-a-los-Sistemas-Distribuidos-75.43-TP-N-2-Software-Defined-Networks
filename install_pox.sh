@@ -42,6 +42,7 @@ echo ""
 # Clonar POX completo
 echo "1. Clonando POX desde GitHub..."
 git clone https://github.com/noxrepo/pox.git
+cp dns.py pox/pox/lib/packet/dns.py
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}✗ Error al clonar POX${NC}"
