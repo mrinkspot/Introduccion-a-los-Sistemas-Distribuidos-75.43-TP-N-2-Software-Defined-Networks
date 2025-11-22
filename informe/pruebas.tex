@@ -48,10 +48,42 @@ mininet> pingall
 [Insertar captura de logs mostrando instalación de reglas]
 \end{verbatim}
 
-\textbf{Captura de Wireshark}:
-\begin{verbatim}
-[Insertar captura de Wireshark mostrando paquetes ICMP]
-\end{verbatim}
+\textbf{Captura de Mininet}:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{resultado_pingall.png}
+    \caption{Resultado de pingall}
+    \label{fig:resultado_pingall}
+\end{figure}
+
+\textbf{Capturas de Wireshark}:
+Captura de interfaz de s1 que conecta con h2:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{resultado_pingall_h2.png}
+    \caption{Resultado de pingall para h2}
+    \label{fig:resultado_pingall_h2}
+\end{figure}
+Se puede observar que se envia un mensaje de ping a h3 pero no se recibe respuesta.
+Tampoco se recibe un ping de h3.\\
+
+Captura de interfaz de s2 que conecta con h3:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{resultado_pingall_h3.png}
+    \caption{Resultado de pingall para h3}
+    \label{fig:resultado_pingall_h3}
+\end{figure}
+En este caso no se recibe respuesta del ping a h2 ni se recibe un ping de este ultimo.\\
+
+Captura de interfaz de s1 que conecta con s2:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{resultado_pingall_switches.png}
+    \caption{Resultado de pingall en los switches}
+    \label{fig:resultado_pingall_switches}
+\end{figure}
+Se observa que no se envian los pings de h2 a h3 y viceversa ya que estos son descartados.
 
 \subsection{Pruebas de Firewall}
 
