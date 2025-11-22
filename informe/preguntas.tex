@@ -34,3 +34,21 @@ En cuanto a sus similitudes:
     \item Forman parte crítica de la infraestructura de red.
     \item En un entorno SDN, ambos pueden administrarse desde un controlador central que define cómo deben manejar el tráfico.
 \end{enumerate}
+
+\subsection{¿Cuál es la diferencia entre un Switch convencional y un Switch OpenFlow?}
+
+La diferencia principal es que en un switch convencional el plano de control y el plano de datos se ejecutan en el mismo dispositivo. En cambio, un switch OpenFlow separa estos planos: la responsabilidad del reenvío de paquetes reside en el switch, mientras que las decisiones de enrutamiento están centralizadas en un controlador SDN externo que se comunica con el switch a través del protocolo OpenFlow. 
+
+La principal diferencia entre un switch convencional y un switch OpenFlow radica en el grado de control y programabilidad que ofrecen. Mientras que un switch tradicional opera de manera autónoma y se limita a aprender direcciones MAC y reenviar tramas siguiendo una lógica fija definida por el fabricante, un switch OpenFlow delega todas las decisiones de forwarding en un controlador central. Esto implica que su comportamiento no está determinado por su firmware, sino por reglas que el controlador instala dinámicamente. 
+
+Gracias a esta separación entre el plano de datos y el plano de control, OpenFlow permite modificar políticas y flujos en tiempo real sin intervención manual en el dispositivo, logrando una flexibilidad mucho mayor que la de un switch convencional. En lugar de “aprender” la red como lo haría un switch tradicional, un switch OpenFlow no actúa por iniciativa propia: cada decisión de reenvío depende de las instrucciones que reciba del controlador, lo que introduce un modelo operativo completamente centralizado.
+
+\subsection{¿Se pueden reemplazar todos los routers de la Internet por Switches OpenFlow?}
+
+Si bien las redes definidas por software y el protocolo OpenFlow representan un avance significativo en cuanto a flexibilidad y programabilidad dentro de un dominio controlado, no es factible reemplazar todos los routers de Internet por switches OpenFlow, especialmente en el escenario Inter-AS. 
+
+La arquitectura de Internet se sostiene sobre la autonomía administrativa de miles de Sistemas Autónomos (ASes), cada uno responsable de sus propias políticas de ruteo, y cuya coordinación global depende del protocolo BGP. A diferencia de los entornos Intra-AS o los data centers, donde SDN funciona con gran éxito gracias a la separación entre el plano de control y el plano de datos y a la centralización lógica del controlador, el ruteo Inter-AS no busca optimizar el camino más corto, sino que respeta políticas comerciales complejas, restricciones contractuales y decisiones estratégicas entre operadores, algo que OpenFlow no está diseñado para manejar. 
+
+Además, la escala global del ruteo en Internet hace inviable depender de un controlador SDN que deba computar y distribuir continuamente información de enrutamiento equivalente a las enormes tablas de prefijos que hoy gestionan los routers BGP. Centralizar la lógica de control no solo sería prohibitivo en términos de comunicación y procesamiento, sino que también iría en contra del modelo distribuido que permitió que Internet escale y se mantenga robusta. 
+
+A esto se suman cuestiones prácticas: OpenFlow requiere infraestructura adicional, introduce dependencia hacia un controlador remoto y puede generar latencia en la instalación de flujos; mientras que los routers tradicionales, altamente optimizados y probados, ofrecen fiabilidad, compatibilidad con múltiples protocolos y rendimiento predecible incluso bajo condiciones extremas.
