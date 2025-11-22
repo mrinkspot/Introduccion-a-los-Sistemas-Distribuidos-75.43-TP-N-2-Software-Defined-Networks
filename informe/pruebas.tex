@@ -183,18 +183,31 @@ mininet> h3 ping -c 4 h2
 
 \textbf{Resultado Esperado}: 100\% packet loss en ambas direcciones.
 
+\textbf{Resultados Obtenidos}:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{pings_h2_h3.png}
+    \caption{Resultado de pings entre h2 y h3}
+    \label{fig:pings_h2_h3}
+\end{figure}
+
 \textbf{Test 2: TCP (iperf)}
 \begin{verbatim}
 mininet> h3 iperf -s &
 mininet> h2 iperf -c 10.0.0.3 -t 5
+mininet> h2 iperf -s &
+mininet> h3 iperf -c 10.0.0.2 -t 5
 \end{verbatim}
 
 \textbf{Resultado Esperado}: No se establece conexión TCP.
 
 \textbf{Resultado Obtenido}:
-\begin{verbatim}
-[Insertar salida mostrando que no hay conectividad]
-\end{verbatim}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{resultados_iperfs_h2-h3.png}
+    \caption{Resultado de iperf entre h2 y h3}
+    \label{fig:resultados_iperfs_h2-h3}
+\end{figure}
 
 \textbf{Prueba de Control}:
 \begin{verbatim}
@@ -203,6 +216,21 @@ mininet> h3 ping -c 4 h4    # Debería funcionar
 \end{verbatim}
 
 \textbf{Resultado}: Conectividad exitosa (solo está bloqueada la comunicación entre h2 y h3).
+
+\textbf{Resultado Obtenido}:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{ping_h2-h1.png}
+    \caption{Resultado de ping entre h2 y h1}
+    \label{fig:ping_h2-h1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{ping_h3-h4.png}
+    \caption{Resultado de ping entre h3 y h4}
+    \label{fig:ping_h3-h4}
+\end{figure}
 
 \subsection{Pruebas con Diferentes Topologías}
 
