@@ -103,9 +103,12 @@ mininet> h4 curl -m 5 http://10.0.0.1:80
 \textbf{Resultado Esperado}: Timeout (conexión bloqueada por firewall)
 
 \textbf{Resultado Obtenido}:
-\begin{verbatim}
-[Insertar salida del comando curl mostrando timeout]
-\end{verbatim}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{resultado_curl_h4-h1.png}
+    \caption{Resultado de curl de h4 a h1}
+    \label{fig:resultado_curl_h4-h1}
+\end{figure}
 
 \textbf{Verificación con iperf}:
 \begin{verbatim}
@@ -117,6 +120,12 @@ mininet> h4 iperf -c 10.0.0.1 -p 80 -t 5
 \end{verbatim}
 
 \textbf{Resultado}: No se establece conexión.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{resultado_iperf_h4-h1.png}
+    \caption{Resultado de iperf de h4 a h1 en puerto 80}
+    \label{fig:resultado_iperf_h4-h1}
+\end{figure}
 
 \textbf{Prueba de Control (puerto no bloqueado)}:
 \begin{verbatim}
@@ -125,6 +134,12 @@ mininet> h4 curl http://10.0.0.1:8000
 \end{verbatim}
 
 \textbf{Resultado}: Conexión exitosa (el puerto 8000 no está bloqueado).
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{resultado_curl_8000_h4-h1.png}
+    \caption{Resultado de curl de h4 a h1 en puerto 8000}
+    \label{fig:resultado_curl_8000_h4-h1}
+\end{figure}
 
 \subsubsection{Prueba 3: Bloqueo UDP Específico - Regla 2}
 
