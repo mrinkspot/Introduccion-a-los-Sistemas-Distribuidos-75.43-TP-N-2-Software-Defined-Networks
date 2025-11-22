@@ -42,6 +42,11 @@ echo ""
 # Clonar POX completo
 echo "1. Clonando POX desde GitHub..."
 git clone https://github.com/noxrepo/pox.git
+
+# Fix para compatibilidad con Python 3
+# El dns.py original usa ord() innecesariamente (Python 2)
+# Nuestro dns.py corrige esto para Python 3+
+echo "2. Aplicando fix de compatibilidad Python 3..."
 cp dns.py pox/pox/lib/packet/dns.py
 
 if [ $? -ne 0 ]; then
@@ -50,7 +55,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Eliminar el .git de POX (no necesitamos versionarlo)
-echo "2. Eliminando .git de POX..."
+echo "3. Eliminando .git de POX..."
 rm -rf pox/.git
 
 echo -e "\n${GREEN}╔════════════════════════════════════════════════════════════╗"

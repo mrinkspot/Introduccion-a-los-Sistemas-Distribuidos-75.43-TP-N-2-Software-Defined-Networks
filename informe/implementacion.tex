@@ -107,6 +107,18 @@ Este mecanismo permite que los switches aprendan dinámicamente la topología si
 
 El firewall se implementó como un módulo POX custom en \texttt{controller/firewall.py}. Sus características principales son:
 
+\textbf{Ubicación del Firewall:}
+
+Las reglas del firewall se aplican \textbf{únicamente en el switch S1} (primer switch de la cadena). Esta decisión de diseño tiene las siguientes implicaciones:
+
+\begin{itemize}
+    \item \textbf{Ventaja}: Centraliza el control de seguridad en un único punto, simplificando la gestión y monitoreo.
+    \item \textbf{Limitación}: El tráfico que no pasa por S1 (ej: comunicación directa entre h3 y h4 en topologías N>1) no es filtrado por el firewall.
+    \item \textbf{Cobertura}: En la topología implementada (N=2), todo el tráfico inter-extremos (h1/h2 $\leftrightarrow$ h3/h4) pasa por S1, garantizando que las reglas críticas se apliquen correctamente.
+\end{itemize}
+
+La implementación define una lista \texttt{controlled\_switches = [1]} que especifica qué switches deben ejecutar el firewall. Al conectarse un switch, el controlador verifica su DPID y solo instala reglas si coincide con esta lista.
+
 \textbf{Instalación Proactiva de Reglas:}
 \begin{itemize}
     \item Las reglas se instalan al momento de la conexión del switch (evento \texttt{ConnectionUp}).
@@ -264,3 +276,17 @@ Se desarrollaron scripts bash para facilitar la ejecución:
 \end{itemize}
 
 Estos scripts incluyen validaciones y mensajes de error informativos.
+
+\subsection{Compatibilidad y Modificaciones Técnicas}
+
+\subsubsection{Fix de Compatibilidad Python 3}
+
+Durante la instalación de POX, se aplica un parche al archivo \texttt{pox/lib/packet/dns.py} para garantizar compatibilidad con Python 3.x. El archivo original de POX contiene código heredado de Python 2 que utiliza la función \texttt{ord()} innecesariamente al indexar bytes.
+
+\textbf{Modificaciones realizadas:}
+\begin{itemize}
+    \item Eliminación de llamadas \texttt{ord()} redundantes en el parsing de nombres DNS (líneas 378, 382)
+    \item Corrección del método \texttt{join()} para trabajar con bytes en lugar de strings (línea 399)
+\end{itemize}
+
+Este fix se aplica automáticamente en el script \texttt{install\_pox.sh}, copiando el archivo \texttt{dns.py} corregido al directorio correspondiente de POX después de su clonación desde GitHub.
