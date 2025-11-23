@@ -89,8 +89,7 @@ class Firewall(EventMixin):
             # Si no se especifica, queda como comodin (matchea todos)
             if 'protocol' in rule:
                 protocol = rule['protocol'].upper()
-
-                packet_header_to_block.protocol = PROTOCOL_MAP.get(protocol)
+                packet_header_to_block.nw_proto = PROTOCOL_MAP.get(protocol)
             
             # Puerto origen
             if 'src_port' in rule:
