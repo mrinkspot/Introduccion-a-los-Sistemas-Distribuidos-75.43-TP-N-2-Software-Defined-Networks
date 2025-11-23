@@ -52,11 +52,11 @@ echo ""
 
 # Ejecutar POX con módulos custom desde controller/
 cd pox
-PYTHONPATH=../controller:$PYTHONPATH python3.9 ./pox.py log.level --WARNING forwarding.l2_learning firewall
-    log.level --WARNING \
-    py --completion \
-    --ext-path=../controller \
-    forwarding.l2_learning \
-    firewall
+PYTHONPATH=../controller:$PYTHONPATH \
+python3.9 ./pox.py \
+  log.level --WARNING \
+  py --completion \
+  forwarding.l2_learning \
+  firewall
 
 echo -e "\n${GREEN}✓ Controlador detenido${NC}"
