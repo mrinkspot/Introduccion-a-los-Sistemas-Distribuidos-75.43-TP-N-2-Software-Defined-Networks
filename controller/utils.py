@@ -8,9 +8,14 @@ import os
 import json
 from pox.core import core
 
+from pox.lib.addresses import IPAddr
+
 log = core.getLogger()
 
 firewall_rules_json = "firewall_rules.json"
+
+MIN_PORT = 1
+MAX_PORT = 65535
 
 
 def validate_rule(rule, rule_idx):
@@ -65,7 +70,7 @@ def validate_rule(rule, rule_idx):
         if port_field in rule:
             try:
                 port = int(rule[port_field])
-                if port < 1 or port > 65535:
+                if port < MIN_PORT or port > MAX_PORT:
                     log.warning("Regla %d: Puerto fuera de rango en '%s': %d", 
                                rule_idx, port_field, port)
                     return False
@@ -87,17 +92,16 @@ def is_valid_ip(ip_str):
     Returns:
         bool: True si es una IP válida, False en caso contrario
     """
-    try:
-        parts = ip_str.split('.')
-        if len(parts) != 4:
-            return False
-        for part in parts:
-            num = int(part)
-            if num < 0 or num > 255:
-                return False
-        return True
-    except (ValueError, AttributeError):
+
+    if not isinstance(ip_str, str):
         return False
+
+    try:
+        IPAddr(ip_str)  # acepta solo IPv4
+        return True
+    except:
+        return False
+
 
 
 def load_firewall_rules():

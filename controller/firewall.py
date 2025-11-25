@@ -14,10 +14,23 @@ import pox.openflow.libopenflow_01 as of
 from pox.lib.revent import EventMixin
 from pox.lib.util import dpidToStr
 from pox.lib.addresses import IPAddr
+from pox.lib.packet.ethernet import ethernet
+
 from utils import load_firewall_rules
 
 log = core.getLogger() 
 controlled_switches = [1] #Seleccionamos el s1 como unico switch a aplicar las reglas de firewall
+
+# Protocol numbers (IANA IP Protocol Numbers)
+IP_PROTO_ICMP = 1
+IP_PROTO_TCP  = 6
+IP_PROTO_UDP  = 17
+
+PROTOCOL_MAP = {
+    'ICMP': IP_PROTO_ICMP,
+    'TCP':  IP_PROTO_TCP,
+    'UDP':  IP_PROTO_UDP,
+}
 
 class Firewall(EventMixin):
     """
@@ -62,7 +75,7 @@ class Firewall(EventMixin):
             
             # Tipo de Ethernet (IPv4)
             if 'dl_type' in rule or any(k in rule for k in ['src_ip', 'dst_ip', 'protocol']):
-                packet_header_to_block.dl_type = rule.get('dl_type', 0x0800)  # IPv4 por defecto
+                packet_header_to_block.dl_type = rule.get('dl_type', ethernet.IP_TYPE)  # IPv4 por defecto
             
             # Dirección IP origen
             if 'src_ip' in rule:
@@ -76,12 +89,7 @@ class Firewall(EventMixin):
             # Si no se especifica, queda como comodin (matchea todos)
             if 'protocol' in rule:
                 protocol = rule['protocol'].upper()
-                if protocol == 'TCP':
-                    packet_header_to_block.nw_proto = 6
-                elif protocol == 'UDP':
-                    packet_header_to_block.nw_proto = 17
-                elif protocol == 'ICMP':
-                    packet_header_to_block.nw_proto = 1
+                packet_header_to_block.nw_proto = PROTOCOL_MAP.get(protocol)
             
             # Puerto origen
             if 'src_port' in rule:
