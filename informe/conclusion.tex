@@ -1,1 +1,6 @@
 \section{Conclusión}
+En este trabajo implementamos una topología de red parametrizable y un controlador con funciones de firewall utilizando el paradigma de Redes Definidas por Software (SDN) y el protocolo OpenFlow. Esto nos permitió ver en la práctica la separación entre el plano de control y el de datos, delegando la "inteligencia" de la red al controlador POX y dejando a los switches únicamente como dispositivos de reenvío.
+
+Incluimos en nuestro desarrollo un sistema de reglas flexible, ya que implementamos la carga dinámica desde un archivo JSON externo. Esta decisión de diseño nos facilita reconfigurar la seguridad de la red sin necesidad de detener o modificar el controlador, lo que demuestra tambien la versatilidad de este enfoque frente a las configuraciones estáticas tradicionales.
+
+Finalmente, validamos la solución mediante pruebas de conexión con iperf y análisis de tráfico con Wireshark, comprobando que el controlador instalaba correctamente los flujos de descarte y permitía el tráfico según lo esperado
