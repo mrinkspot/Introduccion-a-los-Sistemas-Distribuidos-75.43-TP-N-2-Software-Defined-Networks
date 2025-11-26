@@ -131,6 +131,16 @@ mininet> h4 iperf -c 10.0.0.1 -p 80 -t 5
     \label{fig:resultado_iperf_h4-h1}
 \end{figure}
 
+\textbf{Verificación con Wireshark}
+
+Para confirmar el bloqueo, se capturó tráfico en las interfaces relevantes del recorrido \texttt{h4 → h1}. En s2-eth2 (salida de h4) se observan múltiples \texttt{SYN} retransmitidos, señal de que el cliente intenta iniciar la conexión sin obtener respuesta. En s1-eth1 (camino hacia h1) no aparece ningún paquete al puerto 80, lo que confirma que el firewall descarta el tráfico antes de que alcance el destino.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{resultado_wireshark_bloqueo_h4-h1.png}
+    \caption{Captura de Wireshark: bloqueo de h4 a h1 en puerto 80}
+    \label{fig:resultado_iperf_h4-h1}
+\end{figure}
+
 \textbf{Prueba de Control (puerto no bloqueado)}:
 \begin{verbatim}
 mininet> h1 python3 -m http.server 8000 &
@@ -143,6 +153,17 @@ mininet> h4 curl http://10.0.0.1:8000
     \includegraphics[width=0.8\textwidth]{resultado_curl_8000_h4-h1.png}
     \caption{Resultado de curl de h4 a h1 en puerto 8000}
     \label{fig:resultado_curl_8000_h4-h1}
+\end{figure}
+
+\textbf{Verificación con Wireshark}
+
+Para este caso se capturó tráfico en las mismas interfaces que en la prueba anterior. En s2-eth2 y s1-eth1 se observa el three-way handshake completo (SYN, SYN/ACK, ACK), seguido por el intercambio normal de paquetes HTTP. La presencia del \texttt{GET} y la respuesta \texttt{200 OK} confirma que el tráfico atraviesa ambos switches sin ser filtrado por el firewall.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{resultado_wireshark_no_bloqueo_h4-h1.png}
+    \caption{Captura de Wireshark: tráfico de h4 a h1 en puerto 8000}
+    \label{fig:resultado_iperf_h4-h1}
 \end{figure}
 
 \subsubsection{Prueba 3: Bloqueo UDP Específico - Regla 2}
@@ -264,26 +285,3 @@ mininet> h3 ping -c 4 h4    # Debería funcionar
     \item Firewall mantiene las reglas en todos los switches
     \item Latencia aumenta proporcionalmente con el número de saltos
 \end{itemize}
-
-\subsection{Análisis de Tráfico con Wireshark}
-
-% TODO: Agregar capturas de Wireshark mostrando:
-% - Paquetes ICMP Echo Request/Reply
-% - Mensajes OpenFlow (OFPT_FLOW_MOD, OFPT_PACKET_IN)
-% - Tráfico TCP/UDP bloqueado vs permitido
-
-\begin{figure}[H]
-    \centering
-    % \includegraphics[width=0.9\textwidth]{wireshark_packet_in.png}
-    \textit{[Insertar captura de Wireshark mostrando PacketIn]}
-    \caption{Mensaje PacketIn de OpenFlow al controlador}
-    \label{fig:wireshark_packetin}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    % \includegraphics[width=0.9\textwidth]{wireshark_flow_mod.png}
-    \textit{[Insertar captura de Wireshark mostrando FlowMod]}
-    \caption{Mensaje FlowMod instalando regla de firewall}
-    \label{fig:wireshark_flowmod}
-\end{figure}

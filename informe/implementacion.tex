@@ -106,6 +106,7 @@ Este mecanismo permite que los switches aprendan dinámicamente la topología si
 \subsubsection{Firewall}
 
 El firewall se implementó como un módulo POX custom en \texttt{controller/firewall.py}. Sus características principales son:
+\\
 
 \textbf{Ubicación del Firewall:}
 
@@ -113,11 +114,12 @@ Las reglas del firewall se aplican \textbf{únicamente en el switch S1} (primer 
 
 \begin{itemize}
     \item \textbf{Ventaja}: Centraliza el control de seguridad en un único punto, simplificando la gestión y monitoreo.
-    \item \textbf{Limitación}: El tráfico que no pasa por S1 (ej: comunicación directa entre h3 y h4 en topologías N>1) no es filtrado por el firewall.
+    \item \textbf{Limitación}: El tráfico que no pasa por S1 (ej: comunicación directa entre h3 y h4 en topologías N$>$1) no es filtrado por el firewall.
     \item \textbf{Cobertura}: En la topología implementada (N=2), todo el tráfico inter-extremos (h1/h2 $\leftrightarrow$ h3/h4) pasa por S1, garantizando que las reglas críticas se apliquen correctamente.
 \end{itemize}
 
 La implementación define una lista \texttt{controlled\_switches = [1]} que especifica qué switches deben ejecutar el firewall. Al conectarse un switch, el controlador verifica su DPID y solo instala reglas si coincide con esta lista.
+\\
 
 \textbf{Instalación Proactiva de Reglas:}
 \begin{itemize}
@@ -139,6 +141,7 @@ Cada regla define un \texttt{ofp\_match} con los siguientes campos posibles:
 \end{itemize}
 
 Las reglas sin acciones asociadas resultan en \textit{DROP} implícito.
+\\
 
 \textbf{Validación de Reglas:}
 
