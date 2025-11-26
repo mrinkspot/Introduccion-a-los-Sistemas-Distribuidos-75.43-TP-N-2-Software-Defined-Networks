@@ -133,12 +133,16 @@ mininet> h4 iperf -c 10.0.0.1 -p 80 -t 5
 
 \textbf{Verificación con Wireshark}
 
-Para confirmar el bloqueo, se capturó tráfico en las interfaces relevantes del recorrido \texttt{h4 → h1}. En s2-eth2 (salida de h4) se observan múltiples \texttt{SYN} retransmitidos, señal de que el cliente intenta iniciar la conexión sin obtener respuesta. En s1-eth1 (camino hacia h1) no aparece ningún paquete al puerto 80, lo que confirma que el firewall descarta el tráfico antes de que alcance el destino.
+Para confirmar el bloqueo, se capturó tráfico en las interfaces relevantes del recorrido h4 → h1. 
+En s2-eth3 (salida de h4) se observan múltiples SYN retransmitidos, señal de que el cliente intenta 
+iniciar la conexión sin obtener respuesta. En s1-eth1 (enlace entre s1 y s2) no aparece ningún paquete 
+dirigido al puerto 80, lo que confirma que el firewall descarta el tráfico antes de que alcance el destino.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{resultado_wireshark_bloqueo_h4-h1.png}
     \caption{Captura de Wireshark: bloqueo de h4 a h1 en puerto 80}
-    \label{fig:resultado_iperf_h4-h1}
+    \label{fig:resultado_wireshark_h4-h1_bloqueado}
 \end{figure}
 
 \textbf{Prueba de Control (puerto no bloqueado)}:
@@ -157,13 +161,16 @@ mininet> h4 curl http://10.0.0.1:8000
 
 \textbf{Verificación con Wireshark}
 
-Para este caso se capturó tráfico en las mismas interfaces que en la prueba anterior. En s2-eth2 y s1-eth1 se observa el three-way handshake completo (SYN, SYN/ACK, ACK), seguido por el intercambio normal de paquetes HTTP. La presencia del \texttt{GET} y la respuesta \texttt{200 OK} confirma que el tráfico atraviesa ambos switches sin ser filtrado por el firewall.
+Para este caso se capturó tráfico en las mismas interfaces que en la prueba anterior. 
+En s2-eth3 y s1-eth1 se observa el three-way handshake completo (SYN, SYN/ACK, ACK), seguido por 
+el intercambio normal de paquetes HTTP. La presencia del GET y la respuesta 200 OK confirma que 
+el tráfico atraviesa ambos switches sin ser filtrado por el firewall.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{resultado_wireshark_no_bloqueo_h4-h1.png}
     \caption{Captura de Wireshark: tráfico de h4 a h1 en puerto 8000}
-    \label{fig:resultado_iperf_h4-h1}
+    \label{fig:resultado_wireshark_h4-h1_permitido}
 \end{figure}
 
 \subsubsection{Prueba 3: Bloqueo UDP Específico - Regla 2}
@@ -194,6 +201,27 @@ mininet> h2 iperf -c 10.0.0.4 -u -p 5001 -t 5
     \includegraphics[width=0.8\textwidth]{resultado_iperf_udp.png}
     \caption{Resultado de iperfs udp de h1 y h2 a h4 en puerto 5001}
     \label{fig:resultado_iperf_udp}
+\end{figure}
+
+\textbf{Verificación con Wireshark}
+
+Se realizó la captura en la interfaz s1-eth1, que conecta ambos switches. 
+El tráfico UDP enviado desde h1 hacia el puerto 5001 no aparece en la captura, 
+indicando que fue bloqueado antes de abandonar s1. En cambio, los datagramas provenientes de h2 
+sí se observan atravesando s1-eth1, lo que confirma que este flujo fue permitido.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{resultado_wireshark_bloqueo_h1_udp_5001.png}
+    \caption{Captura de Wireshark: tráfico UDP de h1 a puerto 5001 bloqueado}
+    \label{fig:resultado_wireshark_h1_udp}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{resultado_wireshark_no_bloqueo_h2_udp_5001.png}
+    \caption{Captura de Wireshark: tráfico UDP de h2 a puerto 5001 permitido}
+    \label{fig:resultado_wireshark_h2_udp}
 \end{figure}
 
 \subsubsection{Prueba 4: Bloqueo Bidireccional - Regla 3}
