@@ -1,315 +1,242 @@
 \section{Pruebas y Validación}
 
-Esta sección describe las pruebas realizadas para verificar el correcto funcionamiento de la topología, el controlador SDN y las reglas del firewall.
+Para verificar que el sistema funciona como esperamos, realizamos una serie de pruebas que cubren desde conectividad básica hasta validación específica de cada regla del firewall. También probamos diferentes configuraciones de topología para asegurar que el diseño escala correctamente.
 
-\subsection{Configuración del Entorno de Pruebas}
+\subsection{Configuración del Entorno}
 
-Todas las pruebas se realizaron siguiendo el siguiente procedimiento:
+El procedimiento para todas las pruebas es el mismo:
 
 \begin{enumerate}
-    \item \textbf{Iniciar el controlador} (Terminal 1):
+    \item Arrancar el controlador POX (que carga L2 learning y el firewall):
     \begin{verbatim}
     ./run_controller.sh
     \end{verbatim}
     
-    \item \textbf{Iniciar la topología} (Terminal 2):
+    \item Levantar la topología de Mininet con el número de switches deseado:
     \begin{verbatim}
-    ./run_topology.sh 2    # Para N=2 switches
+    ./run_topology.sh 2
     \end{verbatim}
     
-    \item \textbf{Esperar a que los switches se conecten} y las reglas se instalen.
+    \item Esperar unos segundos a que los switches se conecten y las reglas se instalen.
 \end{enumerate}
 
-\textbf{Importante}: El controlador debe iniciarse \textit{antes} que la topología para que los switches puedan conectarse al momento de su creación.
+Es importante arrancar el controlador primero, porque cuando Mininet crea los switches, estos intentan conectarse inmediatamente al controlador. Si no está corriendo, los switches quedan sin controlador y no funcionan.
 
-\subsection{Verificación Básica: Conectividad}
+\subsection{Verificación Básica de Conectividad}
+
+Antes de probar reglas específicas, verificamos que el sistema funciona correctamente y que el firewall bloquea donde debe.
 
 \subsubsection{Prueba 1: PingAll}
 
-\textbf{Objetivo}: Verificar que todos los hosts pueden comunicarse entre sí (excepto donde el firewall lo impide).
+Para tener una visión general de la conectividad, ejecutamos \texttt{pingall} en Mininet:
 
-\textbf{Comando}:
 \begin{verbatim}
 mininet> pingall
 \end{verbatim}
 
-\textbf{Resultado Esperado}:
-\begin{itemize}
-    \item $h_1 \leftrightarrow h_2$: Conectividad exitosa
-    \item $h_1 \leftrightarrow h_3$: Conectividad exitosa
-    \item $h_1 \leftrightarrow h_4$: Conectividad exitosa
-    \item $h_2 \leftrightarrow h_3$: Bloqueado (Regla 3)
-    \item $h_2 \leftrightarrow h_4$: Conectividad exitosa
-    \item $h_3 \leftrightarrow h_4$: Conectividad exitosa
-\end{itemize}
+Los resultados muestran que la mayoría de los hosts se comunican correctamente, excepto h2 y h3 que tienen comunicación bloqueada por la regla del firewall.
 
-\textbf{Logs del Controlador}:
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{carga_reglas_logs.png}
-    \caption{Carga de las reglas al switch}
+    \includegraphics[width=1\textwidth]{carga_reglas_logs.png}
+    \caption{Logs del controlador mostrando la instalación de las 4 reglas en el switch S1}
     \label{fig:carga_reglas_logs}
 \end{figure}
-Desde los logs del controlador podemos observar que las reglas fueron instaladas con exito en el switch 1.
 
-\textbf{Captura de Mininet}:
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{resultado_pingall.png}
-    \caption{Resultado de pingall}
+    \includegraphics[width=0.6\textwidth]{resultado_pingall.png}
+    \caption{Resultado del comando pingall. Se observa conectividad completa excepto entre h2 y h3}
     \label{fig:resultado_pingall}
 \end{figure}
 
-\textbf{Capturas de Wireshark}:
-Captura de interfaz de s1 que conecta con h2:
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{resultado_pingall_h2.png}
-    \caption{Resultado de pingall para h2}
-    \label{fig:resultado_pingall_h2}
-\end{figure}
-Se puede observar que se envia un mensaje de ping a h3 pero no se recibe respuesta.
-Tampoco se recibe un ping de h3.\\
+Para confirmar que el firewall está realmente bloqueando el tráfico, capturamos tráfico en la interfaz que conecta ambos switches (s1-eth1):
 
-Captura de interfaz de s2 que conecta con h3:
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{resultado_pingall_h3.png}
-    \caption{Resultado de pingall para h3}
-    \label{fig:resultado_pingall_h3}
-\end{figure}
-En este caso no se recibe respuesta del ping a h2 ni se recibe un ping de este ultimo.\\
-
-Captura de interfaz de s1 que conecta con s2:
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{resultado_pingall_switches.png}
-    \caption{Resultado de pingall en los switches}
+    \includegraphics[width=1\textwidth]{resultado_pingall_switches.png}
+    \caption{Captura en la interfaz s1-eth1. Los pings entre h2 y h3 no atraviesan el switch, confirmando que el firewall los descarta antes de reenviarlos}
     \label{fig:resultado_pingall_switches}
 \end{figure}
-Se observa que no se envian los pings de h2 a h3 y viceversa ya que estos son descartados.
 
-\subsection{Pruebas de Firewall}
+\subsection{Validación de Reglas Específicas del Firewall}
 
-\subsubsection{Prueba 2: Bloqueo de Puerto 80 (HTTP) - Regla 1}
+Las siguientes pruebas verifican cada regla configurada en el firewall, asegurando que bloquean el tráfico correcto sin afectar el resto de las comunicaciones permitidas.
 
-\textbf{Objetivo}: Verificar que todo el tráfico al puerto 80 es bloqueado.
+\subsubsection{Prueba 2: Bloqueo de Puerto 80 (TCP y UDP) - Regla 1}
 
-\textbf{Configuración}:
+El firewall tiene dos reglas que bloquean todo el tráfico hacia el puerto 80, tanto TCP como UDP. Para verificarlo, probamos con diferentes herramientas y analizamos el tráfico capturado.
+\\
+
+\textbf{Prueba con HTTP (TCP):}
 \begin{verbatim}
-# Terminal h1 - Iniciar servidor HTTP en puerto 80
 mininet> h1 python3 -m http.server 80 &
-
-# Terminal h4 - Intentar acceder desde otro host
 mininet> h4 curl -m 5 http://10.0.0.1:80
 \end{verbatim}
 
-\textbf{Resultado Esperado}: Timeout (conexión bloqueada por firewall)
+El comando \texttt{curl} falla con timeout, confirmando que no puede establecer conexión.
 
-\textbf{Resultado Obtenido}:
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{resultado_curl_h4-h1.png}
-    \caption{Resultado de curl de h4 a h1}
+    \caption{Intento fallido de conexión HTTP desde h4 hacia h1:80}
     \label{fig:resultado_curl_h4-h1}
 \end{figure}
 
-\textbf{Verificación con iperf}:
+\textbf{Prueba con iperf (TCP):}
 \begin{verbatim}
-# Servidor en h1
 mininet> h1 iperf -s -p 80 &
-
-# Cliente en h4
 mininet> h4 iperf -c 10.0.0.1 -p 80 -t 5
 \end{verbatim}
 
-\textbf{Resultado}: No se establece conexión.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{resultado_iperf_h4-h1.png}
-    \caption{Resultado de iperf de h4 a h1 en puerto 80}
+    \caption{iperf tampoco logra establecer conexión en puerto 80}
     \label{fig:resultado_iperf_h4-h1}
 \end{figure}
 
-\textbf{Verificación con Wireshark}
-
-Para confirmar el bloqueo, se capturó tráfico en las interfaces relevantes del recorrido h4 → h1. 
-En s2-eth3 (salida de h4) se observan múltiples SYN retransmitidos, señal de que el cliente intenta 
-iniciar la conexión sin obtener respuesta. En s1-eth1 (enlace entre s1 y s2) no aparece ningún paquete 
-dirigido al puerto 80, lo que confirma que el firewall descarta el tráfico antes de que alcance el destino.
+Para realizar el análisis con Wireshark, capturamos tráfico en distintas interfaces para ver dónde se está bloqueando. En s2-eth3 (salida de h4) vemos los intentos de conexión SYN, pero en s1-eth1 (enlace entre s1 y s2, después del firewall) no aparece nada, lo que confirma que s1 está descartando los paquetes.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{resultado_wireshark_bloqueo_h4-h1.png}
-    \caption{Captura de Wireshark: bloqueo de h4 a h1 en puerto 80}
+    \caption{Captura de Wireshark mostrando paquetes SYN retransmitidos sin respuesta. El tráfico no atraviesa s1}
     \label{fig:resultado_wireshark_h4-h1_bloqueado}
 \end{figure}
 
-\textbf{Prueba de Control (puerto no bloqueado)}:
+\textbf{Verificación con puerto permitido (8000):}
+
+Para confirmar que el problema es específicamente el puerto 80 y no un error de configuración general, probamos con el puerto 8000:
+
 \begin{verbatim}
 mininet> h1 python3 -m http.server 8000 &
 mininet> h4 curl http://10.0.0.1:8000
 \end{verbatim}
 
-\textbf{Resultado}: Conexión exitosa (el puerto 8000 no está bloqueado).
+Esta vez la conexión funciona perfectamente:
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{resultado_curl_8000_h4-h1.png}
-    \caption{Resultado de curl de h4 a h1 en puerto 8000}
+    \caption{Conexión exitosa en puerto 8000 (no bloqueado)}
     \label{fig:resultado_curl_8000_h4-h1}
 \end{figure}
 
-\textbf{Verificación con Wireshark}
-
-Para este caso se capturó tráfico en las mismas interfaces que en la prueba anterior. 
-En s2-eth3 y s1-eth1 se observa el three-way handshake completo (SYN, SYN/ACK, ACK), seguido por 
-el intercambio normal de paquetes HTTP. La presencia del GET y la respuesta 200 OK confirma que 
-el tráfico atraviesa ambos switches sin ser filtrado por el firewall.
+El análisis de Wireshark muestra el handshake TCP completo y el intercambio HTTP normal:
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{resultado_wireshark_no_bloqueo_h4-h1.png}
-    \caption{Captura de Wireshark: tráfico de h4 a h1 en puerto 8000}
+    \caption{En puerto 8000 el tráfico fluye sin problemas, confirmando que el firewall es selectivo}
     \label{fig:resultado_wireshark_h4-h1_permitido}
 \end{figure}
 
-\subsubsection{Prueba 3: Bloqueo UDP Específico - Regla 2}
+\subsubsection{Prueba 3: Bloqueo UDP específico - Regla 2}
 
-\textbf{Objetivo}: Verificar que el tráfico UDP desde $h_1$ al puerto 5001 es bloqueado.
+Esta regla bloquea específicamente el tráfico UDP desde h1 hacia el puerto 5001, pero permite que otros hosts usen ese mismo puerto. En esta prueba verificamos que el firewall filtra por dirección IP origen.
 
-\textbf{Configuración}:
 \begin{verbatim}
-# Servidor UDP en h4
 mininet> h4 iperf -s -u -p 5001 &
-
-# Cliente desde h1 (bloqueado)
-mininet> h1 iperf -c 10.0.0.4 -u -p 5001 -t 5
-
-# Cliente desde h2 (permitido)
-mininet> h2 iperf -c 10.0.0.4 -u -p 5001 -t 5
+mininet> h1 iperf -c 10.0.0.4 -u -p 5001 -t 5  # Bloqueado
+mininet> h2 iperf -c 10.0.0.4 -u -p 5001 -t 5  # Permitido
 \end{verbatim}
 
-\textbf{Resultados Esperados}:
-\begin{itemize}
-    \item Desde $h_1$: 0\% de paquetes recibidos (bloqueado)
-    \item Desde $h_2$: 100\% de paquetes recibidos (permitido)
-\end{itemize}
+Los resultados muestran claramente la diferencia: h1 envía paquetes pero el servidor no recibe nada (0\%), mientras que h2 tiene comunicación normal (100\%).
 
-\textbf{Resultados Obtenidos}:
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{resultado_iperf_udp.png}
-    \caption{Resultado de iperfs udp de h1 y h2 a h4 en puerto 5001}
+    \caption{Comparación de tráfico UDP. h1 está bloqueado, h2 funciona correctamente}
     \label{fig:resultado_iperf_udp}
 \end{figure}
 
-\textbf{Verificación con Wireshark}
-
-Se realizó la captura en la interfaz s1-eth1, que conecta ambos switches. 
-El tráfico UDP enviado desde h1 hacia el puerto 5001 no aparece en la captura, 
-indicando que fue bloqueado antes de abandonar s1. En cambio, los datagramas provenientes de h2 
-sí se observan atravesando s1-eth1, lo que confirma que este flujo fue permitido.
+Las capturas de Wireshark en s1-eth1 confirman que el tráfico de h1 no atraviesa el switch, mientras que el de h2 sí:
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{resultado_wireshark_bloqueo_h1_udp_5001.png}
-    \caption{Captura de Wireshark: tráfico UDP de h1 a puerto 5001 bloqueado}
+    \caption{Tráfico UDP de h1 bloqueado: no aparece en la interfaz entre switches}
     \label{fig:resultado_wireshark_h1_udp}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{resultado_wireshark_no_bloqueo_h2_udp_5001.png}
-    \caption{Captura de Wireshark: tráfico UDP de h2 a puerto 5001 permitido}
+    \caption{Tráfico UDP de h2 permitido: los datagramas atraviesan S1 sin problemas}
     \label{fig:resultado_wireshark_h2_udp}
 \end{figure}
 
 \subsubsection{Prueba 4: Bloqueo Bidireccional - Regla 3}
 
-\textbf{Objetivo}: Verificar que $h_2$ y $h_3$ no pueden comunicarse en ninguna dirección.
+Esta regla bloquea toda comunicación entre h2 y h3, independientemente del protocolo o puerto. Esto simula un aislamiento completo entre dos hosts.
 
-\textbf{Test 1: ICMP (ping)}
+\textbf{Prueba con ICMP:}
 \begin{verbatim}
 mininet> h2 ping -c 4 h3
 mininet> h3 ping -c 4 h2
 \end{verbatim}
 
-\textbf{Resultado Esperado}: 100\% packet loss en ambas direcciones.
-
-\textbf{Resultados Obtenidos}:
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{pings_h2_h3.png}
-    \caption{Resultado de pings entre h2 y h3}
+    \caption{100\% packet loss en ambas direcciones}
     \label{fig:pings_h2_h3}
 \end{figure}
 
-\textbf{Test 2: TCP (iperf)}
+\textbf{Prueba con TCP:}
 \begin{verbatim}
 mininet> h3 iperf -s &
 mininet> h2 iperf -c 10.0.0.3 -t 5
-mininet> h2 iperf -s &
-mininet> h3 iperf -c 10.0.0.2 -t 5
 \end{verbatim}
 
-\textbf{Resultado Esperado}: No se establece conexión TCP.
-
-\textbf{Resultado Obtenido}:
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{resultados_iperfs_h2-h3.png}
-    \caption{Resultado de iperf entre h2 y h3}
+    \caption{Conexión TCP también bloqueada entre h2 y h3}
     \label{fig:resultados_iperfs_h2-h3}
 \end{figure}
 
-\textbf{Prueba de Control}:
-\begin{verbatim}
-mininet> h2 ping -c 4 h1    # Debería funcionar
-mininet> h3 ping -c 4 h4    # Debería funcionar
-\end{verbatim}
+Para asegurar que el bloqueo es específico y no un problema general de red, verificamos que ambos hosts pueden comunicarse normalmente con otros:
 
-\textbf{Resultado}: Conectividad exitosa (solo está bloqueada la comunicación entre h2 y h3).
-
-\textbf{Resultado Obtenido}:
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{ping_h2-h1.png}
-    \caption{Resultado de ping entre h2 y h1}
+    \caption{h2 puede comunicarse sin problemas con h1}
     \label{fig:ping_h2-h1}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{ping_h3-h4.png}
-    \caption{Resultado de ping entre h3 y h4}
+    \caption{h3 puede comunicarse sin problemas con h4}
     \label{fig:ping_h3-h4}
 \end{figure}
 
-\subsection{Pruebas con Diferentes Topologías}
+\subsection{Escalabilidad: Pruebas con Diferentes Topologías}
 
-\subsubsection{Topología con N=1}
+Una ventaja del diseño parametrizable es que podemos probar el sistema con distintas configuraciones. Ejecutamos las mismas pruebas de firewall en topologías de diferente tamaño para verificar que todo sigue funcionando.
 
-\textbf{Configuración}:
+\subsubsection{Topología con N=1 (Caso Mínimo)}
+
 \begin{verbatim}
 ./run_topology.sh 1
 \end{verbatim}
 
-\textbf{Características}: Todos los hosts conectados al mismo switch (topología estrella).
+Con un solo switch, todos los hosts están conectados al mismo equipo (topología estrella). El firewall se instala en S1 y bloquea el tráfico correctamente. Esta configuración es útil para pruebas rápidas y debugging, ya que elimina la complejidad de múltiples saltos.
 
-\textbf{Resultado}: Las reglas del firewall se aplican correctamente independientemente de la topología.
+\subsubsection{Topología con N=3 (Cadena Extendida)}
 
-\subsubsection{Topología con N=3}
-
-\textbf{Configuración}:
 \begin{verbatim}
 ./run_topology.sh 3
 \end{verbatim}
 
-\textbf{Características}: Cadena de 3 switches, aumenta la distancia entre hosts extremos.
+Con tres switches en cadena, los hosts extremos (h1 en S1 y h4 en S3) están separados por dos saltos. Esta configuración prueba:
 
-\textbf{Resultado}: 
 \begin{itemize}
-    \item L2 learning funciona correctamente en topología extendida
-    \item Firewall mantiene las reglas en todos los switches
-    \item Latencia aumenta proporcionalmente con el número de saltos
+    \item \textbf{L2 learning en múltiples switches}: El controlador debe aprender las MACs en cada switch de la cadena
+    \item \textbf{Propagación de reglas}: El firewall solo se instala en S1, pero afecta a todo el tráfico que pasa por ahí
+    \item \textbf{Latencia}: Como era de esperar, los pings entre h1 y h4 tienen mayor latencia que en N=1 o N=2
 \end{itemize}
+
+En ambos casos las reglas del firewall funcionan igual, demostrando que el diseño es robusto y escalable.
