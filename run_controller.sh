@@ -47,7 +47,7 @@ echo "  • Módulos custom desde: ./controller/"
 echo ""
 
 echo -e "${YELLOW}Iniciando controlador POX...${NC}"
-echo -e "${YELLOW}Presiona Ctrl+D para detener${NC}"
+echo -e "${YELLOW}Presiona Ctrl+C para detener${NC}"
 echo ""
 
 # Ejecutar POX con módulos custom desde controller/
@@ -55,7 +55,6 @@ cd pox
 PYTHONPATH=../controller:$PYTHONPATH \
 python3.9 ./pox.py \
   log.level --WARNING \
-  py --completion \
   forwarding.l2_learning \
   firewall
 
