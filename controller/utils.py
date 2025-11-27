@@ -16,11 +16,20 @@ firewall_rules_json = "firewall_rules.json"
 
 MIN_PORT = 1
 MAX_PORT = 65535
+MIN_SWITCH = 1
+DEFAULT_SWITCH = 1
 
 
 def validate_rule(rule, rule_idx):
     """
     Valida que una regla de firewall tenga un formato válido.
+    
+    Campos soportados:
+    - switch (int, opcional): Número del switch donde aplicar la regla (default: 1)
+    - src_ip, dst_ip (str): Direcciones IPv4
+    - protocol (str): TCP, UDP o ICMP
+    - src_port, dst_port (int): Puertos (1-65535)
+    - dl_type (int): Tipo de Ethernet (opcional)
     
     Args:
         rule (dict): Regla a validar
@@ -79,6 +88,19 @@ def validate_rule(rule, rule_idx):
                            rule_idx, port_field, rule[port_field])
                 return False
     
+    # numero de switch sobre el que se aplica la regla (opcional, por defecto lo vamos a settear en 1)
+    if 'switch' in rule:
+        try:
+            switch_id = int(rule['switch'])
+            if switch_id < MIN_SWITCH:
+                log.warning("Regla %d: Número de switch inválido: %d (debe ser >= %d)", 
+                           rule_idx, switch_id, MIN_SWITCH)
+                return False
+        except (ValueError, TypeError):
+            log.warning("Regla %d: Número de switch no es un entero válido: %s", 
+                       rule_idx, rule['switch'])
+            return False
+    
     return True
 
 
@@ -127,6 +149,10 @@ def load_firewall_rules():
             valid_rules = []
             for idx, rule in enumerate(rules_list, 1):
                 if validate_rule(rule, idx):
+                    # asignamos un switch por defecto si no esta especificado en la regla
+                    if 'switch' not in rule:
+                        rule['switch'] = DEFAULT_SWITCH
+                        log.debug("Regla %d: Asignando switch por defecto (%d)", idx, DEFAULT_SWITCH)
                     valid_rules.append(rule)
                 else:
                     log.error("Regla %d ignorada por errores de validación", idx)

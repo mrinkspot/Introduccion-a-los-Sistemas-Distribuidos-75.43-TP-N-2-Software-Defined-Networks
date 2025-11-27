@@ -2,7 +2,11 @@
 Firewall SDN con OpenFlow
 
 Implementación de firewall a nivel de capa 2/3 usando OpenFlow.
-Carga reglas desde archivo JSON y las instala en los switches especificados.
+Carga reglas desde archivo JSON y las instala en switches específicos.
+
+Cada regla puede especificar a qué switch se aplica (campo 'switch').
+Si no se especifica, la regla se aplica al Switch 1 por defecto.
+Las reglas se instalan dinámicamente cuando cada switch se conecta.
 
 Basado en: Coursera - Software Defined Networking (SDN) course
            Programming Assignment: Layer-2 Firewall Application
@@ -18,8 +22,7 @@ from pox.lib.packet.ethernet import ethernet
 
 from utils import load_firewall_rules
 
-log = core.getLogger() 
-controlled_switches = [1] #Seleccionamos el s1 como unico switch a aplicar las reglas de firewall
+log = core.getLogger()
 
 # Protocol numbers (IANA IP Protocol Numbers)
 IP_PROTO_ICMP = 1
@@ -44,32 +47,56 @@ class Firewall(EventMixin):
         """Inicializa el firewall y carga las reglas desde JSON."""
         self.listenTo(core.openflow)
         self.rules = load_firewall_rules()
+        
         log.info("=" * 70)
         log.info("Firewall SDN inicializado")
         log.info("Reglas cargadas: %d", len(self.rules))
+        
+        # imprimimos la distribucion de las reglas por switch
+        if self.rules:
+            switches = {}
+            for rule in self.rules:
+                switch_id = rule.get('switch', 1)
+                switches[switch_id] = switches.get(switch_id, 0) + 1
+            
+            log.info("-" * 70)
+            log.info("Distribución de reglas por switch:")
+            for switch_id in sorted(switches.keys()):
+                log.info("  Switch %d: %d regla(s)", switch_id, switches[switch_id])
+        
         log.info("=" * 70)
 
     def _handle_ConnectionUp(self, event):
         """
         Maneja la conexión de un nuevo switch.
         
-        Instala todas las reglas de firewall en el switch
+        Instala las reglas de firewall correspondientes al switch
         que acaba de conectarse al controlador.
         
         Args:
             event: Evento ConnectionUp con información del switch
         """
         dpid_str = dpidToStr(event.dpid)
+        switch_id = event.dpid
+        
         log.info("=" * 70)
-        log.info("Switch %s conectado", dpid_str)
+        log.info("Switch %s (DPID: %d) conectado", dpid_str, switch_id)
         log.info("-" * 70)
 
-        rules_installed = 0
-
-        if event.dpid not in controlled_switches:
+        # me quedo con las reglas para este switch especifico
+        switch_rules = [rule for rule in self.rules if rule.get('switch', 1) == switch_id]
+        
+        if not switch_rules:
+            log.info("No hay reglas de firewall configuradas para este switch")
+            log.info("=" * 70)
             return
         
-        for idx, rule in enumerate(self.rules, 1):
+        log.info("Aplicando %d regla(s) de firewall para Switch %d", len(switch_rules), switch_id)
+        log.info("-" * 70)
+        
+        rules_installed = 0
+        
+        for idx, rule in enumerate(switch_rules, 1):
             # Creacion del header del paquete a bloquear (los campos no definidos se consideran comodines)
             packet_header_to_block = of.ofp_match()
             
@@ -108,11 +135,11 @@ class Firewall(EventMixin):
             rules_installed += 1
             
             rule_desc = rule.get('description', 'Sin descripción')
-            log.info("  [%d/%d] %s", idx, len(self.rules), rule_desc)
+            log.info("  [%d/%d] %s", idx, len(switch_rules), rule_desc)
 
         log.info("-" * 70)
-        log.info("Firewall configurado en %s: %d reglas instaladas", 
-                 dpid_str, rules_installed)
+        log.info("Firewall configurado en Switch %d: %d regla(s) instalada(s)", 
+                 switch_id, rules_installed)
         log.info("=" * 70)
 
 
@@ -123,4 +150,3 @@ def launch():
     Registra el firewall en el core de POX.
     """
     core.registerNew(Firewall)
-    
