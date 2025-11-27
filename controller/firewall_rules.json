@@ -3,28 +3,33 @@
     {
       "description": "Bloquear todo el tráfico al puerto 80",
       "protocol": "TCP",
-      "dst_port": 80
+      "dst_port": 80,
+      "switch": 1
     },
     {
       "description": "Bloquear todo el tráfico al puerto 80",
       "protocol": "UDP",
-      "dst_port": 80
+      "dst_port": 80,
+      "switch": 1
     },
     {
       "description": "Bloquear UDP desde host 1 con puerto destino 5001",
       "src_ip": "10.0.0.1",
       "protocol": "UDP",
-      "dst_port": 5001
+      "dst_port": 5001,
+      "switch": 1
     },
     {
       "description": "Bloquear comunicación de host 2 a host 3",
       "src_ip": "10.0.0.2",
-      "dst_ip": "10.0.0.3"
+      "dst_ip": "10.0.0.3",
+      "switch": 1
     },
     {
       "description": "Bloquear comunicación de host 3 a host 2",
       "src_ip": "10.0.0.3",
-      "dst_ip": "10.0.0.2"
+      "dst_ip": "10.0.0.2",
+      "switch": 1
     }
   ]
 }

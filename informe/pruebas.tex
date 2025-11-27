@@ -38,14 +38,14 @@ Los resultados muestran que la mayoría de los hosts se comunican correctamente,
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth]{carga_reglas_logs.png}
+    \includegraphics[width=1\textwidth]{img/carga_reglas_logs.png}
     \caption{Logs del controlador mostrando la instalación de las 4 reglas en el switch S1}
     \label{fig:carga_reglas_logs}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.6\textwidth]{resultado_pingall.png}
+    \includegraphics[width=0.6\textwidth]{img/resultado_pingall.png}
     \caption{Resultado del comando pingall. Se observa conectividad completa excepto entre h2 y h3}
     \label{fig:resultado_pingall}
 \end{figure}
@@ -54,7 +54,7 @@ Para confirmar que el firewall está realmente bloqueando el tráfico, capturamo
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth]{resultado_pingall_switches.png}
+    \includegraphics[width=1\textwidth]{img/resultado_pingall_switches.png}
     \caption{Captura en la interfaz s1-eth1. Los pings entre h2 y h3 no atraviesan el switch, confirmando que el firewall los descarta antes de reenviarlos}
     \label{fig:resultado_pingall_switches}
 \end{figure}
@@ -78,7 +78,7 @@ El comando \texttt{curl} falla con timeout, confirmando que no puede establecer 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{resultado_curl_h4-h1.png}
+    \includegraphics[width=0.8\textwidth]{img/resultado_curl_h4-h1.png}
     \caption{Intento fallido de conexión HTTP desde h4 hacia h1:80}
     \label{fig:resultado_curl_h4-h1}
 \end{figure}
@@ -91,7 +91,7 @@ mininet> h4 iperf -c 10.0.0.1 -p 80 -t 5
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{resultado_iperf_h4-h1.png}
+    \includegraphics[width=0.8\textwidth]{img/resultado_iperf_h4-h1.png}
     \caption{iperf tampoco logra establecer conexión en puerto 80}
     \label{fig:resultado_iperf_h4-h1}
 \end{figure}
@@ -100,7 +100,7 @@ Para realizar el análisis con Wireshark, capturamos tráfico en distintas inter
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth]{resultado_wireshark_bloqueo_h4-h1.png}
+    \includegraphics[width=1\textwidth]{img/resultado_wireshark_bloqueo_h4-h1.png}
     \caption{Captura de Wireshark mostrando paquetes SYN retransmitidos sin respuesta. El tráfico no atraviesa s1}
     \label{fig:resultado_wireshark_h4-h1_bloqueado}
 \end{figure}
@@ -118,7 +118,7 @@ Esta vez la conexión funciona perfectamente:
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{resultado_curl_8000_h4-h1.png}
+    \includegraphics[width=0.8\textwidth]{img/resultado_curl_8000_h4-h1.png}
     \caption{Conexión exitosa en puerto 8000 (no bloqueado)}
     \label{fig:resultado_curl_8000_h4-h1}
 \end{figure}
@@ -127,7 +127,7 @@ El análisis de Wireshark muestra el handshake TCP completo y el intercambio HTT
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth]{resultado_wireshark_no_bloqueo_h4-h1.png}
+    \includegraphics[width=1\textwidth]{img/resultado_wireshark_no_bloqueo_h4-h1.png}
     \caption{En puerto 8000 el tráfico fluye sin problemas, confirmando que el firewall es selectivo}
     \label{fig:resultado_wireshark_h4-h1_permitido}
 \end{figure}
@@ -146,7 +146,7 @@ Los resultados muestran claramente la diferencia: h1 envía paquetes pero el ser
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{resultado_iperf_udp.png}
+    \includegraphics[width=0.8\textwidth]{img/resultado_iperf_udp.png}
     \caption{Comparación de tráfico UDP. h1 está bloqueado, h2 funciona correctamente}
     \label{fig:resultado_iperf_udp}
 \end{figure}
@@ -155,14 +155,14 @@ Las capturas de Wireshark en s1-eth1 confirman que el tráfico de h1 no atravies
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth]{resultado_wireshark_bloqueo_h1_udp_5001.png}
+    \includegraphics[width=1\textwidth]{img/resultado_wireshark_bloqueo_h1_udp_5001.png}
     \caption{Tráfico UDP de h1 bloqueado: no aparece en la interfaz entre switches}
     \label{fig:resultado_wireshark_h1_udp}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth]{resultado_wireshark_no_bloqueo_h2_udp_5001.png}
+    \includegraphics[width=1\textwidth]{img/resultado_wireshark_no_bloqueo_h2_udp_5001.png}
     \caption{Tráfico UDP de h2 permitido: los datagramas atraviesan S1 sin problemas}
     \label{fig:resultado_wireshark_h2_udp}
 \end{figure}
@@ -179,7 +179,7 @@ mininet> h3 ping -c 4 h2
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{pings_h2_h3.png}
+    \includegraphics[width=0.8\textwidth]{img/pings_h2_h3.png}
     \caption{100\% packet loss en ambas direcciones}
     \label{fig:pings_h2_h3}
 \end{figure}
@@ -192,7 +192,7 @@ mininet> h2 iperf -c 10.0.0.3 -t 5
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{resultados_iperfs_h2-h3.png}
+    \includegraphics[width=0.8\textwidth]{img/resultados_iperfs_h2-h3.png}
     \caption{Conexión TCP también bloqueada entre h2 y h3}
     \label{fig:resultados_iperfs_h2-h3}
 \end{figure}
@@ -201,14 +201,14 @@ Para asegurar que el bloqueo es específico y no un problema general de red, ver
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{ping_h2-h1.png}
+    \includegraphics[width=0.8\textwidth]{img/ping_h2-h1.png}
     \caption{h2 puede comunicarse sin problemas con h1}
     \label{fig:ping_h2-h1}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{ping_h3-h4.png}
+    \includegraphics[width=0.8\textwidth]{img/ping_h3-h4.png}
     \caption{h3 puede comunicarse sin problemas con h4}
     \label{fig:ping_h3-h4}
 \end{figure}
@@ -240,3 +240,5 @@ Con tres switches en cadena, los hosts extremos (h1 en S1 y h4 en S3) están sep
 \end{itemize}
 
 En ambos casos las reglas del firewall funcionan igual, demostrando que el diseño es robusto y escalable.
+
+\textbf{Nota}: En estas pruebas, todas las reglas están configuradas para aplicarse en el switch S1 (mediante el campo \texttt{"switch": 1} en el archivo JSON). El firewall permite configurar reglas específicas para cada switch según las necesidades de segmentación de la red.
