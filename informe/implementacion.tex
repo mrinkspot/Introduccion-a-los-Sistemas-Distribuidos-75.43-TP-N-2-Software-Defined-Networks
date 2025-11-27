@@ -126,9 +126,6 @@ La implementación permite especificar el campo \texttt{"switch": N} en cada reg
 \begin{itemize}
     \item Las reglas se instalan al momento de la conexión del switch (evento \texttt{ConnectionUp}).
     \item Se utiliza el mensaje \texttt{ofp\_flow\_mod} de OpenFlow para crear entradas en la tabla de flujos.
-    % % CHEQUEAR ESTO
-    % \item Las reglas tienen prioridad 100 (mayor que L2 learning, prioridad por defecto 50).
-    % \item Timeouts configurados en 0 (reglas permanentes).
 \end{itemize}
 
 \textbf{Estructura de Reglas:}
@@ -233,6 +230,7 @@ proyecto/
 |   |-- utils.py            # Validación de reglas
 |   `-- firewall_rules.json # Reglas del firewall
 |-- pox/                    # POX (instalado externamente)
+|-- test_suite.py           # Suite de pruebas automatizadas
 |-- topology.py             # Topología Mininet
 |-- run_controller.sh       # Script para ejecutar POX
 |-- run_topology.sh         # Script para ejecutar Mininet
@@ -253,17 +251,6 @@ Se decidió utilizar el módulo \texttt{forwarding.l2\_learning} de POX en lugar
     \item Reducción de complejidad y tiempo de desarrollo
 \end{itemize}
 
-% % CHEQUEAR ESTO
-% \subsubsection{Prioridad de Reglas}
-
-% Las reglas del firewall tienen prioridad 100, mientras que las reglas de L2 learning tienen prioridad por defecto (generalmente 50). Esto asegura que:
-
-% \begin{itemize}
-%     \item Las reglas de bloqueo se evalúan primero
-%     \item No se crean conflictos entre módulos
-%     \item El firewall mantiene control sobre el tráfico bloqueado
-% \end{itemize}
-
 \subsubsection{Validación Extensiva}
 
 Se implementó un sistema de validación completo para prevenir errores comunes:
@@ -283,6 +270,7 @@ Se desarrollaron scripts bash para facilitar la ejecución:
     \item \texttt{install\_pox.sh}: Clona e instala POX desde GitHub
     \item \texttt{run\_controller.sh}: Ejecuta POX con los módulos necesarios
     \item \texttt{run\_topology.sh}: Lanza Mininet con la topología parametrizable
+    \item \texttt{test\_suite.py}: Script interactivo que automatiza la ejecución de las pruebas, validando conectividad y reglas del firewall
 \end{itemize}
 
 Estos scripts incluyen validaciones y mensajes de error informativos.
