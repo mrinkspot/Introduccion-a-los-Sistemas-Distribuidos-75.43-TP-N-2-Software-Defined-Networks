@@ -199,6 +199,7 @@ proyecto/
 │   ├── utils.py            # Utilidades (carga de reglas)
 │   └── firewall_rules.json # Reglas del firewall
 ├── pox/                     # POX (no versionado, se instala con script)
+├── test_suite.py            # Suite de pruebas automatizadas
 ├── topology.py              # Topología Mininet parametrizable
 ├── run_controller.sh        # Script para ejecutar POX
 ├── run_topology.sh          # Script para ejecutar Mininet
@@ -284,7 +285,30 @@ Las reglas activas están definidas en `controller/firewall_rules.json`:
 2. **Regla 2**: Bloquear UDP desde h1 (10.0.0.1) al puerto 5001
 3. **Regla 3**: Bloquear comunicación bidireccional entre h2 ↔ h3
 
-### Tests Sugeridos
+### Automatización de Pruebas
+
+Para facilitar la validación, se incluye un script interactivo que ejecuta automáticamente todos los escenarios de prueba documentados.
+
+**Pasos para ejecutar la suite de tests:**
+
+1. Iniciar el controlador en una terminal:
+   ```bash
+   ./run_controller.sh
+   ```
+
+2. Iniciar la topología en otra terminal:
+   ```bash
+   sudo ./run_topology.sh
+   ```
+
+3. Dentro de la CLI de Mininet, ejecutar el script:
+   ```bash
+   mininet> py exec(open('test_suite.py').read())
+   ```
+
+Esto abrirá un menú interactivo donde podrás seleccionar qué prueba ejecutar (Pingall, Puerto 80, UDP, Bloqueo de Hosts, etc.) o correr todas secuencialmente. El script muestra en tiempo real los comandos ejecutados y valida los resultados automáticamente.
+
+### Tests Sugeridos (ejecución manual)
 
 **Test 1: Conectividad general (h2 ↔ h3 bloqueada)**
 ```bash
