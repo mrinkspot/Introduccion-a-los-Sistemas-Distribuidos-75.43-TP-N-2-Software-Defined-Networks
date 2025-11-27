@@ -240,3 +240,5 @@ Con tres switches en cadena, los hosts extremos (h1 en S1 y h4 en S3) están sep
 \end{itemize}
 
 En ambos casos las reglas del firewall funcionan igual, demostrando que el diseño es robusto y escalable.
+
+\textbf{Nota}: En estas pruebas, todas las reglas están configuradas para aplicarse en el switch S1 (mediante el campo \texttt{"switch": 1} en el archivo JSON). El firewall permite configurar reglas específicas para cada switch según las necesidades de segmentación de la red.

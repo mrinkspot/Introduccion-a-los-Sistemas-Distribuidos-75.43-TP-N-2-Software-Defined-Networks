@@ -108,17 +108,18 @@ Este mecanismo permite que los switches aprendan dinámicamente la topología si
 El firewall se implementó como un módulo POX custom en \texttt{controller/firewall.py}. Sus características principales son:
 \\
 
-\textbf{Ubicación del Firewall:}
+\textbf{Ubicación del Firewall (Parametrizable):}
 
-Las reglas del firewall se aplican \textbf{únicamente en el switch S1} (primer switch de la cadena). Esta decisión de diseño tiene las siguientes implicaciones:
+El firewall permite configurar en qué switches se aplican las reglas mediante el campo \texttt{switch} en cada regla del archivo JSON. Por defecto, las reglas se aplican en el switch 1 (primer switch de la cadena). Esta decisión de diseño tiene las siguientes implicaciones:
 
 \begin{itemize}
     \item \textbf{Ventaja}: Centraliza el control de seguridad en un único punto, simplificando la gestión y monitoreo.
-    \item \textbf{Limitación}: El tráfico que no pasa por S1 (ej: comunicación directa entre h3 y h4 en topologías N$>$1) no es filtrado por el firewall.
+    \item \textbf{Limitación}: El tráfico que no pasa por S1 (ej: comunicación directa entre h3 y h4 en topologías N$>$1) no es filtrado si las reglas solo están configuradas para S1.
     \item \textbf{Cobertura}: En la topología implementada (N=2), todo el tráfico inter-extremos (h1/h2 $\leftrightarrow$ h3/h4) pasa por S1, garantizando que las reglas críticas se apliquen correctamente.
+    \item \textbf{Flexibilidad}: Se pueden configurar reglas específicas para cada switch según las necesidades de segmentación de la red.
 \end{itemize}
 
-La implementación define una lista \texttt{controlled\_switches = [1]} que especifica qué switches deben ejecutar el firewall. Al conectarse un switch, el controlador verifica su DPID y solo instala reglas si coincide con esta lista.
+La implementación permite especificar el campo \texttt{"switch": N} en cada regla del archivo JSON. Al conectarse un switch, el controlador filtra las reglas correspondientes a su DPID y solo instala aquellas que le corresponden. Si no se especifica el campo, la regla se aplica al switch 1 por defecto.
 \\
 
 \textbf{Instalación Proactiva de Reglas:}
@@ -151,8 +152,10 @@ Se implementó un sistema robusto de validación en \texttt{controller/utils.py}
     \item Validación de formato de direcciones IPv4
     \item Verificación de protocolos válidos (TCP, UDP, ICMP)
     \item Validación de rangos de puertos (1-65535)
+    \item Validación del número de switch (entero $\geq$ 1)
     \item Verificación de prerequisitos de OpenFlow (ej: puerto requiere protocolo)
     \item Detección de errores comunes (ej: ICMP no puede tener puertos TCP/UDP)
+    \item Asignación automática de switch por defecto (1) si no se especifica
     \item Logging detallado de reglas inválidas
 \end{itemize}
 
@@ -172,11 +175,12 @@ Las reglas se definen en el archivo \texttt{controller/firewall\_rules.json}. Se
 {
   "description": "Bloquear todo el tráfico al puerto 80",
   "protocol": "TCP",
-  "dst_port": 80
+  "dst_port": 80,
+  "switch": 1
 }
 \end{verbatim}
 
-Esta regla previene el tráfico TCP con destino al puerto 80.
+Esta regla previene el tráfico TCP con destino al puerto 80 en el switch 1.
 
 \subsubsection{Regla 2: Bloqueo Específico UDP}
 
@@ -187,11 +191,12 @@ Esta regla previene el tráfico TCP con destino al puerto 80.
   "description": "Bloquear UDP desde host 1 con puerto destino 5001",
   "src_ip": "10.0.0.1",
   "protocol": "UDP",
-  "dst_port": 5001
+  "dst_port": 5001,
+  "switch": 1
 }
 \end{verbatim}
 
-Esta regla es más específica, bloqueando solo el tráfico UDP desde un host particular a un puerto específico.
+Esta regla es más específica, bloqueando solo el tráfico UDP desde un host particular a un puerto específico en el switch 1.
 
 \subsubsection{Regla 3: Bloqueo Bidireccional}
 
@@ -203,16 +208,18 @@ Esta regla es más específica, bloqueando solo el tráfico UDP desde un host pa
 {
   "description": "Bloquear comunicación de host 2 a host 3",
   "src_ip": "10.0.0.2",
-  "dst_ip": "10.0.0.3"
+  "dst_ip": "10.0.0.3",
+  "switch": 1
 },
 {
   "description": "Bloquear comunicación de host 3 a host 2",
   "src_ip": "10.0.0.3",
-  "dst_ip": "10.0.0.2"
+  "dst_ip": "10.0.0.2",
+  "switch": 1
 }
 \end{verbatim}
 
-Esto asegura el bloqueo total de comunicación entre ambos hosts, sin importar quién inicie la conexión.
+Esto asegura el bloqueo total de comunicación entre ambos hosts en el switch 1, sin importar quién inicie la conexión.
 
 \subsection{Estructura del Proyecto}
 
